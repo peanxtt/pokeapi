@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+:root {
+  --background: oklch(0.965 0.012 88);
+  --foreground: oklch(0.24 0.02 65);
+  --surface: oklch(0.985 0.008 88);
+  --surface-strong: oklch(0.995 0.004 88);
+  --surface-muted: oklch(0.93 0.015 88);
+  --line: oklch(0.83 0.015 80);
+  --line-strong: oklch(0.73 0.02 75);
+  --muted: oklch(0.52 0.025 65);
+  --subtle: oklch(0.66 0.018 75);
+  --brand: oklch(0.66 0.12 340);
+  --brand-strong: oklch(0.52 0.14 340);
+  --water: oklch(0.54 0.12 245);
+  --fire: oklch(0.61 0.16 35);
+  --grass: oklch(0.56 0.13 145);
+  --electric: oklch(0.72 0.15 88);
+  --ice: oklch(0.67 0.09 215);
+  --psychic: oklch(0.61 0.16 350);
+  --dark: oklch(0.4 0.09 300);
+  --glass: color-mix(in srgb, var(--surface-strong) 78%, transparent);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --background: oklch(0.185 0.018 75);
+  --foreground: oklch(0.91 0.012 88);
+  --surface: oklch(0.235 0.02 75);
+  --surface-strong: oklch(0.275 0.022 75);
+  --surface-muted: oklch(0.3 0.022 75);
+  --line: oklch(0.4 0.025 75);
+  --line-strong: oklch(0.53 0.03 75);
+  --muted: oklch(0.72 0.018 82);
+  --subtle: oklch(0.6 0.02 75);
+  --brand: oklch(0.78 0.12 340);
+  --brand-strong: oklch(0.86 0.09 340);
+  --water: oklch(0.72 0.1 235);
+  --fire: oklch(0.73 0.13 35);
+  --grass: oklch(0.71 0.11 145);
+  --electric: oklch(0.82 0.13 90);
+  --ice: oklch(0.78 0.07 215);
+  --psychic: oklch(0.75 0.12 350);
+  --dark: oklch(0.78 0.09 300);
+  --glass: color-mix(in srgb, var(--surface-strong) 76%, transparent);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.185 0.018 75);
+    --foreground: oklch(0.91 0.012 88);
+    --surface: oklch(0.235 0.02 75);
+    --surface-strong: oklch(0.275 0.022 75);
+    --surface-muted: oklch(0.3 0.022 75);
+    --line: oklch(0.4 0.025 75);
+    --line-strong: oklch(0.53 0.03 75);
+    --muted: oklch(0.72 0.018 82);
+    --subtle: oklch(0.6 0.02 75);
+    --brand: oklch(0.78 0.12 340);
+    --brand-strong: oklch(0.86 0.09 340);
+    --water: oklch(0.72 0.1 235);
+    --fire: oklch(0.73 0.13 35);
+    --grass: oklch(0.71 0.11 145);
+    --electric: oklch(0.82 0.13 90);
+    --ice: oklch(0.78 0.07 215);
+    --psychic: oklch(0.75 0.12 350);
+    --dark: oklch(0.78 0.09 300);
+    --glass: color-mix(in srgb, var(--surface-strong) 76%, transparent);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--brand) 24%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.site-shell {
+  width: min(80vw, 834px);
+  margin-inline: auto;
+}
+
+.glass-surface {
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  background: var(--glass);
+  box-shadow: 0 18px 60px -48px color-mix(in srgb, var(--foreground) 32%, transparent);
+  backdrop-filter: blur(22px) saturate(1.12);
+}
+
+.hairline {
+  border-color: color-mix(in srgb, var(--line) 82%, transparent);
+}
+
+.type-badge[data-type="water"] {
+  color: var(--water);
+  background: color-mix(in srgb, var(--water) 13%, transparent);
+}
+
+.type-badge[data-type="fire"] {
+  color: var(--fire);
+  background: color-mix(in srgb, var(--fire) 13%, transparent);
+}
+
+.type-badge[data-type="grass"] {
+  color: var(--grass);
+  background: color-mix(in srgb, var(--grass) 13%, transparent);
+}
+
+.type-badge[data-type="electric"] {
+  color: var(--electric);
+  background: color-mix(in srgb, var(--electric) 18%, transparent);
+}
+
+.type-badge[data-type="ice"] {
+  color: var(--ice);
+  background: color-mix(in srgb, var(--ice) 13%, transparent);
+}
+
+.type-badge[data-type="psychic"],
+.type-badge[data-type="fairy"] {
+  color: var(--psychic);
+  background: color-mix(in srgb, var(--psychic) 13%, transparent);
+}
+
+.type-badge[data-type="dark"] {
+  color: var(--dark);
+  background: color-mix(in srgb, var(--dark) 13%, transparent);
+}
+
+.type-badge[data-type="normal"],
+.type-badge[data-type="fighting"],
+.type-badge[data-type="poison"],
+.type-badge[data-type="ground"],
+.type-badge[data-type="flying"],
+.type-badge[data-type="bug"],
+.type-badge[data-type="rock"],
+.type-badge[data-type="ghost"],
+.type-badge[data-type="dragon"],
+.type-badge[data-type="steel"],
+.type-badge[data-type="stellar"] {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+.artwork-stage {
+  background: color-mix(in srgb, var(--surface-muted) 62%, transparent);
+}
+
+@media (max-width: 767px) {
+  .site-shell {
+    width: 100%;
+    padding-inline: 16px;
+  }
+}
