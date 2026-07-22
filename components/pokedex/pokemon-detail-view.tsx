@@ -83,7 +83,7 @@ function EvolutionSequence({ from, node }: EvolutionNodeProps): React.JSX.Elemen
 }
 
 function StatBar({ label, value }: { label: string; value: number }): React.JSX.Element {
-  const width = `${Math.min(value, 255) / 255 * 100}%`;
+  const scale = Math.min(value, 255) / 255;
 
   return (
     <div>
@@ -92,7 +92,7 @@ function StatBar({ label, value }: { label: string; value: number }): React.JSX.
         <span className="font-mono text-xs text-foreground">{value}</span>
       </div>
       <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-muted">
-        <motion.div animate={{ width }} className="h-full rounded-full bg-brand" initial={{ width: 0 }} transition={{ duration: 0.7, ease: "easeOut" }} />
+        <motion.div animate={{ scaleX: scale }} className="h-full origin-left rounded-full bg-brand" initial={{ scaleX: 0 }} transition={{ type: "spring", stiffness: 160, damping: 24 }} />
       </div>
     </div>
   );
@@ -153,16 +153,28 @@ export function PokemonDetailView({ detail, from }: PokemonDetailViewProps): Rea
           </div>
           <p className="mt-6 max-w-prose text-[15px] leading-7 text-muted">{detail.description ?? "A detailed field note is not available for this species."}</p>
           <div className="mt-6 flex flex-wrap gap-2">
-            <button
-              aria-pressed={isShiny}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3.5 text-sm font-semibold transition-colors ${isShiny ? "border-brand/45 bg-brand/10 text-brand" : "hairline text-muted hover:text-foreground"}`}
+            <motion.button
+              aria-checked={isShiny}
+              aria-label={canShowShiny ? "Shiny artwork" : "Shiny artwork unavailable"}
+              className={`inline-flex min-h-11 items-center gap-3 rounded-xl border px-3.5 text-sm font-semibold transition-colors ${isShiny ? "border-brand/45 bg-brand/10 text-brand" : "hairline text-muted hover:text-foreground"} disabled:cursor-not-allowed disabled:opacity-55`}
               disabled={!canShowShiny}
               onClick={() => setIsShiny((current) => !current)}
+              role="switch"
               type="button"
+              whileTap={canShowShiny ? { scale: 0.98 } : undefined}
             >
               <Sparkles aria-hidden size={16} strokeWidth={1.7} />
-              {canShowShiny ? (isShiny ? "Shiny artwork" : "Show shiny") : "Shiny unavailable"}
-            </button>
+              <span>Shiny</span>
+              <span aria-hidden className={`relative h-6 w-11 rounded-full p-0.5 transition-colors ${isShiny ? "bg-brand/80" : "bg-surface-muted"}`}>
+                <motion.span
+                  animate={{ x: isShiny ? 20 : 0 }}
+                  className={`absolute left-0.5 top-0.5 size-5 rounded-full shadow-sm ${isShiny ? "bg-background" : "bg-foreground"}`}
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em]">{canShowShiny ? (isShiny ? "On" : "Off") : "N/A"}</span>
+            </motion.button>
           </div>
         </div>
       </section>

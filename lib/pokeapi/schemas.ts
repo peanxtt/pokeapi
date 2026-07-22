@@ -16,7 +16,7 @@ const spritesSchema = z.object({
   front_shiny: spriteUrlSchema,
   other: z
     .object({
-      "official-artwork": z.object({ front_default: spriteUrlSchema }),
+      "official-artwork": z.object({ front_default: spriteUrlSchema, front_shiny: spriteUrlSchema.optional() }),
       home: z.object({ front_default: spriteUrlSchema, front_shiny: spriteUrlSchema }),
     })
     .optional(),

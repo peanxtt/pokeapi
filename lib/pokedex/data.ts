@@ -44,7 +44,7 @@ function getArtworkUrl(pokemon: ValidatedPokemon): string | null {
 }
 
 function getShinyArtworkUrl(pokemon: ValidatedPokemon): string | null {
-  return pokemon.sprites.other?.home.front_shiny ?? pokemon.sprites.front_shiny;
+  return pokemon.sprites.other?.["official-artwork"].front_shiny ?? pokemon.sprites.other?.home.front_shiny ?? pokemon.sprites.front_shiny;
 }
 
 function getTypeNames(pokemon: ValidatedPokemon): PokemonTypeName[] {

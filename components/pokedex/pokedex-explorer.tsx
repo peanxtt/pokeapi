@@ -92,17 +92,10 @@ export function PokedexExplorer({ catalog, initialQuery, initialTypes, scope }: 
   return (
     <main className="site-shell pb-20">
       <section aria-labelledby="pokedex-heading" className="pt-8 sm:pt-12">
-        <div className="flex items-end justify-between gap-6">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand">National reference</p>
-            <h1 className="mt-3 max-w-[13ch] text-4xl font-semibold tracking-[-0.065em] text-foreground sm:text-5xl" id="pokedex-heading">
-              Know every Pokémon.
-            </h1>
-          </div>
-          <p className="hidden max-w-[16ch] pb-1 text-right text-sm leading-6 text-muted sm:block">
-            Start with a generation. Search when you know what you’re looking for.
-          </p>
-        </div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand">National reference</p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.065em] text-foreground sm:text-5xl" id="pokedex-heading">
+          Know every Pokémon.
+        </h1>
       </section>
 
       <nav aria-label="Choose a generation" className="mt-10 -mx-1 overflow-x-auto pb-1">
@@ -157,7 +150,7 @@ export function PokedexExplorer({ catalog, initialQuery, initialTypes, scope }: 
             return (
               <button
                 aria-pressed={isSelected}
-                className={`type-badge shrink-0 rounded-lg border px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.11em] transition-all ${isSelected ? "border-foreground/35 ring-2 ring-brand/30" : "border-transparent opacity-65 hover:opacity-100"}`}
+                className={`type-badge shrink-0 rounded-lg border px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.11em] transition-[background-color,border-color,box-shadow,color,opacity] ${isSelected ? "border-foreground/35 ring-2 ring-brand/30" : "border-transparent opacity-65 hover:opacity-100"}`}
                 data-type={type}
                 key={type}
                 onClick={() => toggleType(type)}

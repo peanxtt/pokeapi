@@ -1,0 +1,5 @@
+# Keep master/detail selection URL-backed
+
+Status: accepted
+
+The desktop detail pane and mobile slide-in panel use the canonical species route, with the selected variant represented by `?variant=...` and the browse context retained for return navigation. A shared workspace shell uses a parallel detail slot on desktop and an intercepted detail route on mobile; direct species URLs render as full-page details. When no browse context is present, the workspace infers the species' introduction generation so the selected row remains visible. Desktop row selection replaces the current URL because the list remains present; mobile selection pushes history because Back dismisses the detail panel. This keeps selection shareable, restorable on refresh, and compatible with browser navigation while preserving the anonymous, database-free product boundary; returning from mobile restores the prior generation, filters, and list position, changing species resets the detail pane to its top, and the mobile panel may be dismissed from a narrow left-edge swipe.

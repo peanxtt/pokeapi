@@ -9,6 +9,11 @@ Last updated: 2026-07-21
 
 A numbered Pokémon generation as exposed by PokéAPI. A generation is the primary browsing scope for the list. Gen I is the default scope; “All” is an explicit cross-generation scope.
 
+### Introduction generation
+
+The generation in which a species first appears in the National Pokédex. It is used only to choose a default browse context for direct species URLs when no explicit list context is present.
+_Avoid_: current generation, form generation.
+
 ### Species
 
 The canonical Pokédex identity represented by one species page and one national Pokédex number. A species owns its descriptive content, evolution chain, and available variants.
