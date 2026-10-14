@@ -1,9 +1,17 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
-import { EvolutionChain, Generation, MainClient, Pokemon, PokemonSpecies } from "pokenode-ts";
+import { notFound } from "next/navigation";
+import {
+  EvolutionChain,
+  Generation,
+  MainClient,
+  Pokemon,
+  PokemonSpecies,
+} from "pokenode-ts";
 
 import {
+  abilitySchema,
   evolutionChainSchema,
   generationSchema,
   pokemonListSchema,
@@ -37,7 +45,10 @@ function wait(milliseconds: number): Promise<void> {
   });
 }
 
-async function withRetries<T>(operation: string, request: () => Promise<T>): Promise<T> {
+async function withRetries<T>(
+  operation: string,
+  request: () => Promise<T>,
+): Promise<T> {
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
@@ -45,6 +56,14 @@ async function withRetries<T>(operation: string, request: () => Promise<T>): Pro
       return await request();
     } catch (error) {
       const normalizedError = getError(error);
+      if (
+        "response" in normalizedError &&
+        typeof normalizedError.response === "object" &&
+        normalizedError.response !== null &&
+        "status" in normalizedError.response &&
+        normalizedError.response.status === 404
+      )
+        notFound();
       lastError = normalizedError;
 
       if (attempt < 3) {
@@ -67,7 +86,9 @@ async function withRetries<T>(operation: string, request: () => Promise<T>): Pro
 
 const getGenerationResource = unstable_cache(
   async (id: number): Promise<ValidatedGeneration> => {
-    const response: Generation = await withRetries(`generation ${id}`, () => api.game.getGenerationById(id));
+    const response: Generation = await withRetries(`generation ${id}`, () =>
+      api.game.getGenerationById(id),
+    );
     return generationSchema.parse(response);
   },
   ["pokedex-generation"],
@@ -76,7 +97,9 @@ const getGenerationResource = unstable_cache(
 
 const getPokemonResource = unstable_cache(
   async (id: number): Promise<ValidatedPokemon> => {
-    const response: Pokemon = await withRetries(`pokemon ${id}`, () => api.pokemon.getPokemonById(id));
+    const response: Pokemon = await withRetries(`pokemon ${id}`, () =>
+      api.pokemon.getPokemonById(id),
+    );
     return pokemonSchema.parse(response);
   },
   ["pokedex-pokemon"],
@@ -85,7 +108,9 @@ const getPokemonResource = unstable_cache(
 
 const getPokemonByNameResource = unstable_cache(
   async (name: string): Promise<ValidatedPokemon> => {
-    const response: Pokemon = await withRetries(`pokemon ${name}`, () => api.pokemon.getPokemonByName(name));
+    const response: Pokemon = await withRetries(`pokemon ${name}`, () =>
+      api.pokemon.getPokemonByName(name),
+    );
     return pokemonSchema.parse(response);
   },
   ["pokedex-pokemon-by-name"],
@@ -94,16 +119,32 @@ const getPokemonByNameResource = unstable_cache(
 
 const getSpeciesResource = unstable_cache(
   async (name: string): Promise<ValidatedSpecies> => {
-    const response: PokemonSpecies = await withRetries(`species ${name}`, () => api.pokemon.getPokemonSpeciesByName(name));
+    const response: PokemonSpecies = await withRetries(`species ${name}`, () =>
+      api.pokemon.getPokemonSpeciesByName(name),
+    );
     return speciesSchema.parse(response);
   },
-  ["pokedex-species"],
+  ["pokedex-species-v2"],
+  { revalidate: CACHE_SECONDS },
+);
+
+export const getAbilityResourceByName = unstable_cache(
+  async (name: string) =>
+    abilitySchema.parse(
+      await withRetries(`ability ${name}`, () =>
+        api.pokemon.getAbilityByName(name),
+      ),
+    ),
+  ["pokedex-ability"],
   { revalidate: CACHE_SECONDS },
 );
 
 const getEvolutionResource = unstable_cache(
   async (id: number): Promise<ValidatedEvolutionChain> => {
-    const response: EvolutionChain = await withRetries(`evolution chain ${id}`, () => api.evolution.getEvolutionChainById(id));
+    const response: EvolutionChain = await withRetries(
+      `evolution chain ${id}`,
+      () => api.evolution.getEvolutionChainById(id),
+    );
     return evolutionChainSchema.parse(response);
   },
   ["pokedex-evolution-chain"],
@@ -112,34 +153,48 @@ const getEvolutionResource = unstable_cache(
 
 const getSpeciesPageResource = unstable_cache(
   async (offset: number): Promise<ValidatedPokemonList> => {
-    const response = await withRetries(`species list at offset ${offset}`, () => api.pokemon.listPokemonSpecies(offset, PAGE_SIZE));
+    const response = await withRetries(`species list at offset ${offset}`, () =>
+      api.pokemon.listPokemonSpecies(offset, PAGE_SIZE),
+    );
     return pokemonListSchema.parse(response);
   },
   ["pokedex-species-list"],
   { revalidate: CACHE_SECONDS },
 );
 
-export async function getGenerationResourceById(id: number): Promise<ValidatedGeneration> {
+export async function getGenerationResourceById(
+  id: number,
+): Promise<ValidatedGeneration> {
   return getGenerationResource(id);
 }
 
-export async function getPokemonResourceById(id: number): Promise<ValidatedPokemon> {
+export async function getPokemonResourceById(
+  id: number,
+): Promise<ValidatedPokemon> {
   return getPokemonResource(id);
 }
 
-export async function getPokemonResourceByName(name: string): Promise<ValidatedPokemon> {
+export async function getPokemonResourceByName(
+  name: string,
+): Promise<ValidatedPokemon> {
   return getPokemonByNameResource(name);
 }
 
-export async function getSpeciesResourceByName(name: string): Promise<ValidatedSpecies> {
+export async function getSpeciesResourceByName(
+  name: string,
+): Promise<ValidatedSpecies> {
   return getSpeciesResource(name);
 }
 
-export async function getEvolutionResourceById(id: number): Promise<ValidatedEvolutionChain> {
+export async function getEvolutionResourceById(
+  id: number,
+): Promise<ValidatedEvolutionChain> {
   return getEvolutionResource(id);
 }
 
-export async function getAllSpeciesResources(): Promise<ValidatedPokemonList["results"]> {
+export async function getAllSpeciesResources(): Promise<
+  ValidatedPokemonList["results"]
+> {
   const firstPage = await getSpeciesPageResource(0);
   const resources = [...firstPage.results];
 

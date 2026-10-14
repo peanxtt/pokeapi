@@ -1,19 +1,56 @@
-import Image from "next/image";
+"use client";
 
-type PokemonArtworkProps = {
+import Image from "next/image";
+import { ImageOff } from "lucide-react";
+import { useState } from "react";
+type Props = {
   alt: string;
   priority: boolean;
   src: string | null;
+  sizes?: string;
+  retryable?: boolean;
 };
-
-export function PokemonArtwork({ alt, priority, src }: PokemonArtworkProps): React.JSX.Element {
-  if (!src) {
-    return <div aria-label={`${alt} unavailable`} className="flex h-full min-h-24 items-center justify-center text-xs text-muted" role="img">No artwork</div>;
-  }
-
+export function PokemonArtwork({
+  alt,
+  priority,
+  src,
+  sizes = "80px",
+  retryable = true,
+}: Props): React.JSX.Element {
+  const [failed, setFailed] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<string | null>(null);
+  if (!src || failed === src)
+    return (
+      <div
+        className="artwork-fallback"
+        role="img"
+        aria-label={`${alt} unavailable`}
+      >
+        <ImageOff size={28} aria-hidden />
+        <span>Artwork unavailable</span>
+        {src && retryable && (
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => setFailed(null)}
+          >
+            Retry artwork
+          </button>
+        )}
+      </div>
+    );
   return (
-    <span className="absolute inset-3 block">
-      <Image alt={alt} className="object-contain object-center" fill preload={priority} sizes="(max-width: 767px) 28vw, 128px" src={src} />
+    <span className={`artwork-image ${loaded === src ? "is-loaded" : ""}`}>
+      <Image
+        alt={alt}
+        fill
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        sizes={sizes}
+        src={src}
+        onLoad={() => setLoaded(src)}
+        onError={() => setFailed(src)}
+      />
     </span>
   );
 }

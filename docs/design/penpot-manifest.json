@@ -1,0 +1,1212 @@
+{
+  "file": "fd558256-f8c8-8184-8008-bf9fa9326cee",
+  "name": "PokeAPI",
+  "date": "2026-10-14",
+  "pages": [
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d101800c07",
+      "name": "02 / Responsive screens",
+      "boards": [
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d17b650d19",
+          "name": "light / Desktop 1440",
+          "width": 1440,
+          "height": 1887
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1a76c8383",
+          "name": "light / Desktop 1920",
+          "width": 1920,
+          "height": 1887
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3f999e2dd",
+          "name": "night / Desktop 1920",
+          "width": 1920,
+          "height": 1887
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1ac4923dd",
+          "name": "light / Desktop 1024",
+          "width": 1024,
+          "height": 2176
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3fa2e010a",
+          "name": "night / Desktop 1024",
+          "width": 1024,
+          "height": 2176
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1b4608948",
+          "name": "light / Browse 768",
+          "width": 768,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3fac3252b",
+          "name": "night / Browse 768",
+          "width": 768,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1b8901e56",
+          "name": "light / Detail 768",
+          "width": 768,
+          "height": 1799
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3faf7f1e3",
+          "name": "night / Detail 768",
+          "width": 768,
+          "height": 1799
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1bfea5dfc",
+          "name": "light / Browse 390",
+          "width": 390,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d85a0d2204",
+          "name": "Accessibility / Reduced-motion browse",
+          "width": 390,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d6fd24876b",
+          "name": "light / Browse 390 / All generations",
+          "width": 390,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d4f9e95884",
+          "name": "Mobile / Theme selector",
+          "width": 390,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d4f7de6dbf",
+          "name": "Mobile / Generation selector",
+          "width": 390,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d4f573d769",
+          "name": "Mobile / Type selector",
+          "width": 390,
+          "height": 1343.9999999999982
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1c56e7043",
+          "name": "light / Detail 390",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d85a141ad8",
+          "name": "Accessibility / Reduced-motion detail",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d859c524f1",
+          "name": "light / Detail 390 / All generations",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d501e3e389",
+          "name": "light / artwork-fallback / 390",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1cefce705",
+          "name": "light / Browse 320",
+          "width": 320,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3fb4ed23e",
+          "name": "night / Browse 320",
+          "width": 320,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d1d5e98eb4",
+          "name": "light / Detail 320",
+          "width": 320,
+          "height": 2304
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3fb858c97",
+          "name": "night / Detail 320",
+          "width": 320,
+          "height": 2304
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d225d03e4b",
+          "name": "night / Desktop 1440",
+          "width": 1440,
+          "height": 1887
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d22cefa9da",
+          "name": "night / Browse 390",
+          "width": 390,
+          "height": 1344
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d230a1093c",
+          "name": "night / Detail 390",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2376ddb72",
+          "name": "light / Detail 390 / shiny",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3fbdd1231",
+          "name": "light / Browse 390 / filtered",
+          "width": 390,
+          "height": 1020
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3fd7daf15",
+          "name": "light / Detail 390 / expanded",
+          "width": 390,
+          "height": 2662
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d401e44d10",
+          "name": "light / Detail 390 / Charizard Mega X",
+          "width": 390,
+          "height": 2662
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d4fae2c005",
+          "name": "light / Detail 390 / Charizard default",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d50096b209",
+          "name": "Mobile / Form selector",
+          "width": 390,
+          "height": 2374
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d69ca3d4ab",
+          "name": "light / no-selection / 1440",
+          "width": 1440,
+          "height": 1240
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d6a2cf9372",
+          "name": "light / detail-error / 390",
+          "width": 390,
+          "height": 1120
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9da4c441358",
+          "name": "light / Detail loading 390 / matched",
+          "width": 390,
+          "height": 2374
+        }
+      ]
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d2b9880454",
+      "name": "03 / Loading + recovery",
+      "boards": [
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2b9dd769c",
+          "name": "light / no-selection / 1440",
+          "width": 1440,
+          "height": 1240
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2bb1d73a9",
+          "name": "light / catalog-loading / 1440",
+          "width": 1440,
+          "height": 1240
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2bc7b2b77",
+          "name": "light / detail-loading / 1440",
+          "width": 1440,
+          "height": 1240
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2be7e0646",
+          "name": "light / catalog-error / 1440",
+          "width": 1440,
+          "height": 1240
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2c00a9cc2",
+          "name": "light / detail-error / 1440",
+          "width": 1440,
+          "height": 1240
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2c2fff6f1",
+          "name": "light / search-empty / 1440",
+          "width": 1440,
+          "height": 1240
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2c534ae9d",
+          "name": "light / catalog-loading / 390",
+          "width": 390,
+          "height": 1120
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2c856530e",
+          "name": "light / catalog-error / 390",
+          "width": 390,
+          "height": 1120
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2ca236e5f",
+          "name": "light / detail-error / 390",
+          "width": 390,
+          "height": 1120
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2cb8235c0",
+          "name": "light / search-empty / 390",
+          "width": 390,
+          "height": 1120
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2cd804a4d",
+          "name": "light / not-found / 390",
+          "width": 390,
+          "height": 1120
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d2d11a9d3c",
+          "name": "light / artwork-unavailable / 390",
+          "width": 390,
+          "height": 1120
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9da58ee62bc",
+          "name": "light / Detail loading 390 / matched",
+          "width": 390,
+          "height": 2374
+        }
+      ]
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3614b31cc",
+      "name": "04 / Components + themes",
+      "boards": [
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3615d6e17",
+          "name": "light / Component library",
+          "width": 1440,
+          "height": 1470
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d3644fe52b",
+          "name": "night / Component library",
+          "width": 1440,
+          "height": 1470
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d36986c80b",
+          "name": "Tokens / Palette + type + geometry",
+          "width": 1440,
+          "height": 1460
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d37244667d",
+          "name": "Selectors / Generation + types + form",
+          "width": 1440,
+          "height": 1530
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d85b7b60b6",
+          "name": "Components / Data completeness",
+          "width": 1440,
+          "height": 1510
+        }
+      ]
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d652b31076",
+      "name": "05 / Motion + responsive rules",
+      "boards": [
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d652f3d798",
+          "name": "Motion / Timings + choreography",
+          "width": 1440,
+          "height": 1600
+        },
+        {
+          "id": "a5e56ad8-0bb0-804d-8008-c9d6549c600d",
+          "name": "Responsive / Behavior contract",
+          "width": 1440,
+          "height": 1450
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d36186ad6f",
+      "name": "Primary / default",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3619db112",
+      "name": "Primary / hover",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d361b820d7",
+      "name": "Primary / focus",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d361ce861d",
+      "name": "Primary / pressed",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d361e63660",
+      "name": "Primary / disabled",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d361fd1470",
+      "name": "Primary / loading",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d362199c90",
+      "name": "Secondary / default",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d362329033",
+      "name": "Secondary / hover",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3624fd321",
+      "name": "Secondary / focus",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d362695f84",
+      "name": "Secondary / pressed",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d362844159",
+      "name": "Secondary / disabled",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3629f7974",
+      "name": "Secondary / loading",
+      "path": "Field Guide/Buttons/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d362bac79a",
+      "name": "Search / default",
+      "path": "Field Guide/Inputs/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d362dde045",
+      "name": "Search / focus",
+      "path": "Field Guide/Inputs/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d363085fbc",
+      "name": "Search / error",
+      "path": "Field Guide/Inputs/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d363388c3c",
+      "name": "Species row / default",
+      "path": "Field Guide/Species/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d363644ba9",
+      "name": "Species row / hover",
+      "path": "Field Guide/Species/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d363a73718",
+      "name": "Species row / selected",
+      "path": "Field Guide/Species/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d36444b606",
+      "name": "Species row / loading",
+      "path": "Field Guide/Species/light"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3649e7a5a",
+      "name": "Primary / default",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d364c950ce",
+      "name": "Primary / hover",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d364fbb943",
+      "name": "Primary / focus",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d365277178",
+      "name": "Primary / pressed",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d36555d499",
+      "name": "Primary / disabled",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d365843be9",
+      "name": "Primary / loading",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d365bc2394",
+      "name": "Secondary / default",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d365eb79d8",
+      "name": "Secondary / hover",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d36623d30a",
+      "name": "Secondary / focus",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d36654016d",
+      "name": "Secondary / pressed",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d36686dca0",
+      "name": "Secondary / disabled",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d366b9a6c8",
+      "name": "Secondary / loading",
+      "path": "Field Guide/Buttons/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d366ea7e5b",
+      "name": "Search / default",
+      "path": "Field Guide/Inputs/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3672927b2",
+      "name": "Search / focus",
+      "path": "Field Guide/Inputs/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d367773656",
+      "name": "Search / error",
+      "path": "Field Guide/Inputs/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d367cc9c59",
+      "name": "Species row / default",
+      "path": "Field Guide/Species/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d368182414",
+      "name": "Species row / hover",
+      "path": "Field Guide/Species/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3687186c1",
+      "name": "Species row / selected",
+      "path": "Field Guide/Species/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d36974a36b",
+      "name": "Species row / loading",
+      "path": "Field Guide/Species/night"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d373ffbfd5",
+      "name": "Generation menu",
+      "path": "Field Guide/Selectors"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d3781146e9",
+      "name": "Type filter panel",
+      "path": "Field Guide/Selectors"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d378f44d63",
+      "name": "Form menu",
+      "path": "Field Guide/Selectors"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d37a1f563d",
+      "name": "Theme menu",
+      "path": "Field Guide/Selectors"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d37aed5560",
+      "name": "Shiny toggle",
+      "path": "Field Guide/Selectors"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d85bb3d679",
+      "name": "No alternate forms",
+      "path": "Field Guide/Data"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d85bdbcff3",
+      "name": "Shiny unavailable",
+      "path": "Field Guide/Data"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d85c047eb6",
+      "name": "No recorded evolution",
+      "path": "Field Guide/Data"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d85c2dd8a9",
+      "name": "No moves recorded",
+      "path": "Field Guide/Data"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d85c585702",
+      "name": "Description unavailable",
+      "path": "Field Guide/Data"
+    },
+    {
+      "id": "a5e56ad8-0bb0-804d-8008-c9d85c8435b9",
+      "name": "Type history",
+      "path": "Field Guide/Data"
+    }
+  ],
+  "themes": {
+    "light": {
+      "canvas": "#7A8ABA",
+      "surface": "#F7F8FC",
+      "inset": "#DEDEDE",
+      "nav": "#21242E",
+      "sky": "#9FBEE7",
+      "hero": "#ACACE7",
+      "plate": "#8BA1D4",
+      "ink": "#21242E",
+      "muted": "#3D4F97",
+      "line": "#C0D5E6",
+      "edge": "#3D4F97",
+      "highlight": "#C0D5E6",
+      "accent": "#ECAB37",
+      "accentInk": "#21242E",
+      "selected": "#C0D5E6",
+      "hover": "#E5ECF7",
+      "disabled": "#D8DDE8",
+      "disabledInk": "#656E83",
+      "teal": "#206479",
+      "error": "#A7282B",
+      "errorBg": "#F5E1E0",
+      "onNav": "#F7F8FC",
+      "navMuted": "#9FBEE7",
+      "focus": "#21242E"
+    },
+    "night": {
+      "canvas": "#1D2233",
+      "surface": "#272F46",
+      "inset": "#22293D",
+      "nav": "#161B29",
+      "sky": "#354461",
+      "hero": "#596BA4",
+      "plate": "#485A83",
+      "ink": "#EDF1FC",
+      "muted": "#B4C1E6",
+      "line": "#485B81",
+      "edge": "#101626",
+      "highlight": "#7C91C0",
+      "accent": "#ECAB37",
+      "accentInk": "#21242E",
+      "selected": "#354B70",
+      "hover": "#33415D",
+      "disabled": "#323B52",
+      "disabledInk": "#8A98B5",
+      "teal": "#82C1CC",
+      "error": "#FFB5AE",
+      "errorBg": "#4E303A",
+      "onNav": "#EDF1FC",
+      "navMuted": "#9FBEE7",
+      "focus": "#9FBEE7"
+    }
+  },
+  "tokens": [
+    {
+      "name": "FieldGuidePalette",
+      "tokens": [
+        {
+          "name": "field.light.canvas",
+          "type": "color",
+          "value": "#7A8ABA"
+        },
+        {
+          "name": "field.light.surface",
+          "type": "color",
+          "value": "#F7F8FC"
+        },
+        {
+          "name": "field.light.inset",
+          "type": "color",
+          "value": "#DEDEDE"
+        },
+        {
+          "name": "field.light.nav",
+          "type": "color",
+          "value": "#21242E"
+        },
+        {
+          "name": "field.light.sky",
+          "type": "color",
+          "value": "#9FBEE7"
+        },
+        {
+          "name": "field.light.hero",
+          "type": "color",
+          "value": "#ACACE7"
+        },
+        {
+          "name": "field.light.plate",
+          "type": "color",
+          "value": "#8BA1D4"
+        },
+        {
+          "name": "field.light.ink",
+          "type": "color",
+          "value": "#21242E"
+        },
+        {
+          "name": "field.light.muted",
+          "type": "color",
+          "value": "#3D4F97"
+        },
+        {
+          "name": "field.light.line",
+          "type": "color",
+          "value": "#C0D5E6"
+        },
+        {
+          "name": "field.light.edge",
+          "type": "color",
+          "value": "#3D4F97"
+        },
+        {
+          "name": "field.light.highlight",
+          "type": "color",
+          "value": "#C0D5E6"
+        },
+        {
+          "name": "field.light.accent",
+          "type": "color",
+          "value": "#ECAB37"
+        },
+        {
+          "name": "field.light.accentInk",
+          "type": "color",
+          "value": "#21242E"
+        },
+        {
+          "name": "field.light.selected",
+          "type": "color",
+          "value": "#C0D5E6"
+        },
+        {
+          "name": "field.light.hover",
+          "type": "color",
+          "value": "#E5ECF7"
+        },
+        {
+          "name": "field.light.disabled",
+          "type": "color",
+          "value": "#D8DDE8"
+        },
+        {
+          "name": "field.light.disabledInk",
+          "type": "color",
+          "value": "#656E83"
+        },
+        {
+          "name": "field.light.teal",
+          "type": "color",
+          "value": "#206479"
+        },
+        {
+          "name": "field.light.error",
+          "type": "color",
+          "value": "#A7282B"
+        },
+        {
+          "name": "field.light.errorBg",
+          "type": "color",
+          "value": "#F5E1E0"
+        },
+        {
+          "name": "field.light.onNav",
+          "type": "color",
+          "value": "#F7F8FC"
+        },
+        {
+          "name": "field.light.navMuted",
+          "type": "color",
+          "value": "#9FBEE7"
+        },
+        {
+          "name": "field.light.focus",
+          "type": "color",
+          "value": "#21242E"
+        },
+        {
+          "name": "field.night.canvas",
+          "type": "color",
+          "value": "#1D2233"
+        },
+        {
+          "name": "field.night.surface",
+          "type": "color",
+          "value": "#272F46"
+        },
+        {
+          "name": "field.night.inset",
+          "type": "color",
+          "value": "#22293D"
+        },
+        {
+          "name": "field.night.nav",
+          "type": "color",
+          "value": "#161B29"
+        },
+        {
+          "name": "field.night.sky",
+          "type": "color",
+          "value": "#354461"
+        },
+        {
+          "name": "field.night.hero",
+          "type": "color",
+          "value": "#596BA4"
+        },
+        {
+          "name": "field.night.plate",
+          "type": "color",
+          "value": "#485A83"
+        },
+        {
+          "name": "field.night.ink",
+          "type": "color",
+          "value": "#EDF1FC"
+        },
+        {
+          "name": "field.night.muted",
+          "type": "color",
+          "value": "#B4C1E6"
+        },
+        {
+          "name": "field.night.line",
+          "type": "color",
+          "value": "#485B81"
+        },
+        {
+          "name": "field.night.edge",
+          "type": "color",
+          "value": "#101626"
+        },
+        {
+          "name": "field.night.highlight",
+          "type": "color",
+          "value": "#7C91C0"
+        },
+        {
+          "name": "field.night.accent",
+          "type": "color",
+          "value": "#ECAB37"
+        },
+        {
+          "name": "field.night.accentInk",
+          "type": "color",
+          "value": "#21242E"
+        },
+        {
+          "name": "field.night.selected",
+          "type": "color",
+          "value": "#354B70"
+        },
+        {
+          "name": "field.night.hover",
+          "type": "color",
+          "value": "#33415D"
+        },
+        {
+          "name": "field.night.disabled",
+          "type": "color",
+          "value": "#323B52"
+        },
+        {
+          "name": "field.night.disabledInk",
+          "type": "color",
+          "value": "#8A98B5"
+        },
+        {
+          "name": "field.night.teal",
+          "type": "color",
+          "value": "#82C1CC"
+        },
+        {
+          "name": "field.night.error",
+          "type": "color",
+          "value": "#FFB5AE"
+        },
+        {
+          "name": "field.night.errorBg",
+          "type": "color",
+          "value": "#4E303A"
+        },
+        {
+          "name": "field.night.onNav",
+          "type": "color",
+          "value": "#EDF1FC"
+        },
+        {
+          "name": "field.night.navMuted",
+          "type": "color",
+          "value": "#9FBEE7"
+        },
+        {
+          "name": "field.night.focus",
+          "type": "color",
+          "value": "#9FBEE7"
+        }
+      ]
+    },
+    {
+      "name": "FieldGuideLight",
+      "tokens": [
+        {
+          "name": "color.canvas",
+          "type": "color",
+          "value": "{field.light.canvas}"
+        },
+        {
+          "name": "color.surface",
+          "type": "color",
+          "value": "{field.light.surface}"
+        },
+        {
+          "name": "color.inset",
+          "type": "color",
+          "value": "{field.light.inset}"
+        },
+        {
+          "name": "color.nav",
+          "type": "color",
+          "value": "{field.light.nav}"
+        },
+        {
+          "name": "color.sky",
+          "type": "color",
+          "value": "{field.light.sky}"
+        },
+        {
+          "name": "color.hero",
+          "type": "color",
+          "value": "{field.light.hero}"
+        },
+        {
+          "name": "color.plate",
+          "type": "color",
+          "value": "{field.light.plate}"
+        },
+        {
+          "name": "color.ink",
+          "type": "color",
+          "value": "{field.light.ink}"
+        },
+        {
+          "name": "color.muted",
+          "type": "color",
+          "value": "{field.light.muted}"
+        },
+        {
+          "name": "color.line",
+          "type": "color",
+          "value": "{field.light.line}"
+        },
+        {
+          "name": "color.edge",
+          "type": "color",
+          "value": "{field.light.edge}"
+        },
+        {
+          "name": "color.highlight",
+          "type": "color",
+          "value": "{field.light.highlight}"
+        },
+        {
+          "name": "color.accent",
+          "type": "color",
+          "value": "{field.light.accent}"
+        },
+        {
+          "name": "color.accentInk",
+          "type": "color",
+          "value": "{field.light.accentInk}"
+        },
+        {
+          "name": "color.selected",
+          "type": "color",
+          "value": "{field.light.selected}"
+        },
+        {
+          "name": "color.hover",
+          "type": "color",
+          "value": "{field.light.hover}"
+        },
+        {
+          "name": "color.disabled",
+          "type": "color",
+          "value": "{field.light.disabled}"
+        },
+        {
+          "name": "color.disabledInk",
+          "type": "color",
+          "value": "{field.light.disabledInk}"
+        },
+        {
+          "name": "color.teal",
+          "type": "color",
+          "value": "{field.light.teal}"
+        },
+        {
+          "name": "color.error",
+          "type": "color",
+          "value": "{field.light.error}"
+        },
+        {
+          "name": "color.errorBg",
+          "type": "color",
+          "value": "{field.light.errorBg}"
+        },
+        {
+          "name": "color.onNav",
+          "type": "color",
+          "value": "{field.light.onNav}"
+        },
+        {
+          "name": "color.navMuted",
+          "type": "color",
+          "value": "{field.light.navMuted}"
+        },
+        {
+          "name": "color.focus",
+          "type": "color",
+          "value": "{field.light.focus}"
+        }
+      ]
+    },
+    {
+      "name": "FieldGuideNight",
+      "tokens": [
+        {
+          "name": "color.canvas",
+          "type": "color",
+          "value": "{field.night.canvas}"
+        },
+        {
+          "name": "color.surface",
+          "type": "color",
+          "value": "{field.night.surface}"
+        },
+        {
+          "name": "color.inset",
+          "type": "color",
+          "value": "{field.night.inset}"
+        },
+        {
+          "name": "color.nav",
+          "type": "color",
+          "value": "{field.night.nav}"
+        },
+        {
+          "name": "color.sky",
+          "type": "color",
+          "value": "{field.night.sky}"
+        },
+        {
+          "name": "color.hero",
+          "type": "color",
+          "value": "{field.night.hero}"
+        },
+        {
+          "name": "color.plate",
+          "type": "color",
+          "value": "{field.night.plate}"
+        },
+        {
+          "name": "color.ink",
+          "type": "color",
+          "value": "{field.night.ink}"
+        },
+        {
+          "name": "color.muted",
+          "type": "color",
+          "value": "{field.night.muted}"
+        },
+        {
+          "name": "color.line",
+          "type": "color",
+          "value": "{field.night.line}"
+        },
+        {
+          "name": "color.edge",
+          "type": "color",
+          "value": "{field.night.edge}"
+        },
+        {
+          "name": "color.highlight",
+          "type": "color",
+          "value": "{field.night.highlight}"
+        },
+        {
+          "name": "color.accent",
+          "type": "color",
+          "value": "{field.night.accent}"
+        },
+        {
+          "name": "color.accentInk",
+          "type": "color",
+          "value": "{field.night.accentInk}"
+        },
+        {
+          "name": "color.selected",
+          "type": "color",
+          "value": "{field.night.selected}"
+        },
+        {
+          "name": "color.hover",
+          "type": "color",
+          "value": "{field.night.hover}"
+        },
+        {
+          "name": "color.disabled",
+          "type": "color",
+          "value": "{field.night.disabled}"
+        },
+        {
+          "name": "color.disabledInk",
+          "type": "color",
+          "value": "{field.night.disabledInk}"
+        },
+        {
+          "name": "color.teal",
+          "type": "color",
+          "value": "{field.night.teal}"
+        },
+        {
+          "name": "color.error",
+          "type": "color",
+          "value": "{field.night.error}"
+        },
+        {
+          "name": "color.errorBg",
+          "type": "color",
+          "value": "{field.night.errorBg}"
+        },
+        {
+          "name": "color.onNav",
+          "type": "color",
+          "value": "{field.night.onNav}"
+        },
+        {
+          "name": "color.navMuted",
+          "type": "color",
+          "value": "{field.night.navMuted}"
+        },
+        {
+          "name": "color.focus",
+          "type": "color",
+          "value": "{field.night.focus}"
+        }
+      ]
+    }
+  ],
+  "flows": [
+    "Mobile / Retry to ready",
+    "Night / 390px browse → species",
+    "Desktop / Start with the index",
+    "Mobile / Form selection",
+    "Light / 320px browse → species",
+    "Light / 768px browse → species",
+    "Mobile / All generations",
+    "Accessibility / Reduced-motion navigation",
+    "Light / 390px browse → species",
+    "Mobile / Appearance + disclosure",
+    "Mobile / Loading to ready"
+  ],
+  "qa": {
+    "date": "2026-10-14",
+    "integrity": [],
+    "report": [
+      {
+        "page": "02 / Responsive screens",
+        "boards": 35,
+        "texts": 1768,
+        "overflow": [],
+        "outside": [],
+        "forbidden": 0
+      },
+      {
+        "page": "03 / Loading + recovery",
+        "boards": 13,
+        "texts": 271,
+        "overflow": [],
+        "outside": [],
+        "forbidden": 0
+      },
+      {
+        "page": "04 / Components + themes",
+        "boards": 5,
+        "texts": 257,
+        "overflow": [],
+        "outside": [],
+        "forbidden": 0
+      },
+      {
+        "page": "05 / Motion + responsive rules",
+        "boards": 2,
+        "texts": 73,
+        "overflow": [],
+        "outside": [],
+        "forbidden": 0
+      }
+    ],
+    "searchLabelSvgColor": "fill:#21242e",
+    "review": "Representative native PNGs and native SVG layout exports inspected."
+  }
+}

@@ -16,8 +16,14 @@ const spritesSchema = z.object({
   front_shiny: spriteUrlSchema,
   other: z
     .object({
-      "official-artwork": z.object({ front_default: spriteUrlSchema, front_shiny: spriteUrlSchema.optional() }),
-      home: z.object({ front_default: spriteUrlSchema, front_shiny: spriteUrlSchema }),
+      "official-artwork": z.object({
+        front_default: spriteUrlSchema,
+        front_shiny: spriteUrlSchema.optional(),
+      }),
+      home: z.object({
+        front_default: spriteUrlSchema,
+        front_shiny: spriteUrlSchema,
+      }),
     })
     .optional(),
 });
@@ -89,7 +95,8 @@ export const pokemonSchema = z.object({
 export const speciesSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1),
-  evolution_chain: apiResourceSchema,
+  generation: namedResourceSchema,
+  evolution_chain: apiResourceSchema.nullable(),
   flavor_text_entries: z.array(
     z.object({
       flavor_text: z.string(),
@@ -118,6 +125,12 @@ export const speciesSchema = z.object({
   ),
 });
 
+export const abilitySchema = z.object({
+  effect_entries: z.array(
+    z.object({ short_effect: z.string(), language: namedResourceSchema }),
+  ),
+});
+
 const evolutionDetailSchema = z.object({
   gender: z.number().int().nullable(),
   held_item: namedResourceSchema.nullable(),
@@ -132,7 +145,9 @@ const evolutionDetailSchema = z.object({
   needs_overworld_rain: z.boolean(),
   party_species: namedResourceSchema.nullable(),
   party_type: namedResourceSchema.nullable(),
-  relative_physical_stats: z.union([z.literal(-1), z.literal(0), z.literal(1)]).nullable(),
+  relative_physical_stats: z
+    .union([z.literal(-1), z.literal(0), z.literal(1)])
+    .nullable(),
   time_of_day: z.string(),
   trade_species: namedResourceSchema.nullable(),
   trigger: namedResourceSchema,

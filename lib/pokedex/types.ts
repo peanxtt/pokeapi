@@ -72,6 +72,7 @@ export type PokemonAbilitySummary = {
   name: string;
   displayName: string;
   isHidden: boolean;
+  description: string | null;
 };
 
 export type PokemonMoveSummary = {
@@ -101,6 +102,8 @@ export type EvolutionChainNode = {
 
 export type PokemonDetail = {
   id: number;
+  variantId: number;
+  introductionGeneration: number;
   speciesName: string;
   displayName: string;
   formName: string | null;

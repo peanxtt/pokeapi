@@ -1,64 +1,128 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { MoonStar, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { ControlPopover } from "@/components/pokedex/control-popover";
 
-type Theme = "light" | "dark";
-
-function getSystemTheme(): Theme {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+type Appearance = "system" | "light" | "night";
+const choices: Appearance[] = ["system", "light", "night"];
+function subscribe(listener: () => void): () => void {
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  media.addEventListener("change", listener);
+  return () => media.removeEventListener("change", listener);
 }
-
-function setDocumentTheme(theme: Theme): void {
-  document.documentElement.dataset.theme = theme;
-}
-
 export function ThemeToggle(): React.JSX.Element {
-  const [theme, setTheme] = useState<Theme>("light");
-
+  const [choice, setChoice] = useState<Appearance>("system");
+  const [ready, setReady] = useState(false);
+  const nightSystem = useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+    () => false,
+  );
+  const resolved =
+    choice === "system" ? (nightSystem ? "night" : "light") : choice;
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem("pokedex-theme");
-    const initialTheme: Theme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : getSystemTheme();
-    const frame = window.requestAnimationFrame(() => setTheme(initialTheme));
-
-    setDocumentTheme(initialTheme);
-
-    return () => window.cancelAnimationFrame(frame);
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem("pokedex-theme");
+    } catch {}
+    const initial =
+      saved === "dark"
+        ? "night"
+        : saved === "light" || saved === "night"
+          ? saved
+          : "system";
+    const frame = requestAnimationFrame(() => {
+      setChoice(initial);
+      setReady(true);
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
-
   useEffect(() => {
-    setDocumentTheme(theme);
-  }, [theme]);
-
-  function toggleTheme(): void {
-    const nextTheme: Theme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    setDocumentTheme(nextTheme);
-    window.localStorage.setItem("pokedex-theme", nextTheme);
+    if (ready) document.documentElement.dataset.theme = resolved;
+  }, [ready, resolved]);
+  function select(value: Appearance): void {
+    setChoice(value);
+    try {
+      localStorage.setItem("pokedex-theme", value);
+    } catch {}
   }
-
-  const label = theme === "light" ? "Switch to dark theme" : "Switch to light theme";
-
   return (
-    <button
-      aria-label={label}
-      className="glass-surface relative flex min-h-11 min-w-11 items-center justify-center overflow-hidden rounded-full text-brand transition-colors duration-300 hover:border-line-strong"
-      onClick={toggleTheme}
-      type="button"
+    <ControlPopover
+      title="Appearance"
+      className="theme-popover"
+      label={
+        <>
+          {resolved === "night" ? (
+            <Moon size={16} aria-hidden />
+          ) : (
+            <Sun size={16} aria-hidden />
+          )}
+          <span>
+            {ready ? (resolved === "night" ? "Night" : "Light") : "Theme"}
+          </span>
+        </>
+      }
     >
-      <AnimatePresence initial={false} mode="wait">
-        <motion.span
-          key={theme}
-          animate={{ opacity: 1, rotate: 0, scale: 1 }}
-          className="absolute inset-0 flex items-center justify-center"
-          exit={{ opacity: 0, rotate: -25, scale: 0.75 }}
-          initial={{ opacity: 0, rotate: 25, scale: 0.75 }}
-          transition={{ type: "spring", stiffness: 420, damping: 28 }}
+      {(close) => (
+        <div
+          className="menu-options"
+          role="radiogroup"
+          aria-label="Color theme"
+          onKeyDown={(event) => {
+            const index = choices.indexOf(choice);
+            const next =
+              event.key === "Home"
+                ? 0
+                : event.key === "End"
+                  ? 2
+                  : ["ArrowRight", "ArrowDown"].includes(event.key)
+                    ? (index + 1) % 3
+                    : ["ArrowLeft", "ArrowUp"].includes(event.key)
+                      ? (index + 2) % 3
+                      : -1;
+            if (next < 0) return;
+            event.preventDefault();
+            select(choices[next]);
+            event.currentTarget
+              .querySelectorAll<HTMLButtonElement>("[role='radio']")
+              [next]?.focus();
+          }}
         >
-          {theme === "light" ? <Sparkles aria-hidden size={17} strokeWidth={1.8} /> : <MoonStar aria-hidden size={17} strokeWidth={1.8} />}
-        </motion.span>
-      </AnimatePresence>
-    </button>
+          {choices.map((value) => (
+            <button
+              key={value}
+              role="radio"
+              aria-checked={choice === value}
+              tabIndex={choice === value ? 0 : -1}
+              className={`menu-option ${choice === value ? "selected" : ""}`}
+              type="button"
+              onClick={() => {
+                select(value);
+                close();
+              }}
+            >
+              {value === "system" ? (
+                <Monitor size={17} aria-hidden />
+              ) : value === "light" ? (
+                <Sun size={17} aria-hidden />
+              ) : (
+                <Moon size={17} aria-hidden />
+              )}
+              {value === "system"
+                ? "System"
+                : value === "light"
+                  ? "Light"
+                  : "Night"}
+              {choice === value && (
+                <span className="menu-check" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </ControlPopover>
   );
 }

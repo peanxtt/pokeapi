@@ -1,264 +1,450 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
-import { ArrowLeft, ChevronRight, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
-
+import { useRouter, useSearchParams } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
 import { formatDexNumber } from "@/lib/pokedex/format";
-import type { EvolutionChainNode, PokemonDetail, PokemonMoveSummary, PokemonTypeName } from "@/lib/pokedex/types";
-
-import { ExpandableSection } from "@/components/pokedex/expandable-section";
+import { getDetailHref, parseReturnPath } from "@/lib/pokedex/query";
+import { getGenerationSummary } from "@/lib/pokedex/generations";
+import type {
+  EvolutionChainNode,
+  PokemonDetail,
+  PokemonMoveSummary,
+} from "@/lib/pokedex/types";
 import { PokemonArtwork } from "@/components/pokedex/pokemon-artwork";
 import { TypeBadge } from "@/components/pokedex/type-badge";
+import { ExpandableSection } from "@/components/pokedex/expandable-section";
+import { useMobile } from "@/components/pokedex/use-mobile";
+import { useIndexNavigation } from "@/components/pokedex/guide-shell";
+import { useState } from "react";
 
-type PokemonDetailViewProps = {
+type Props = {
   detail: PokemonDetail;
   from: string;
+  next?: { label: string; href: string };
 };
-
-type EvolutionNodeProps = {
-  from: string;
-  node: EvolutionChainNode;
-};
-
-function getVariantHref(from: string, speciesName: string, variantName: string, isDefault: boolean): string {
-  const params = new URLSearchParams();
-
-  if (!isDefault) {
-    params.set("variant", variantName);
-  }
-
-  params.set("from", from);
-
-  return `/pokemon/${speciesName}?${params.toString()}`;
-}
-
-function groupMoves(moves: PokemonMoveSummary[]): [string, PokemonMoveSummary[]][] {
+function groupMoves(
+  moves: PokemonMoveSummary[],
+): [string, PokemonMoveSummary[]][] {
   const groups = new Map<string, PokemonMoveSummary[]>();
-
-  moves.forEach((move) => {
-    move.methods.forEach((method) => {
-      const currentMoves = groups.get(method) ?? [];
-      groups.set(method, [...currentMoves, move]);
-    });
-  });
-
-  return Array.from(groups.entries());
+  for (const move of moves)
+    for (const method of move.methods)
+      groups.set(method, [...(groups.get(method) || []), move]);
+  return Array.from(groups);
 }
-
-function EvolutionNode({ from, node }: EvolutionNodeProps): React.JSX.Element {
+function EvolutionSequence({
+  node,
+  from,
+  current,
+}: {
+  node: EvolutionChainNode;
+  from: string;
+  current: string;
+}): React.JSX.Element {
   return (
-    <div className="min-w-[116px]">
-      <Link className="group block" href={`/pokemon/${node.name}?from=${encodeURIComponent(from)}`}>
-        <div className="artwork-stage relative mx-auto aspect-square w-24 overflow-hidden rounded-2xl transition-transform duration-300 group-hover:-translate-y-1">
-          <PokemonArtwork alt={`${node.displayName} artwork`} priority={false} src={node.artworkUrl} />
-        </div>
-        <div className="mt-3 text-center">
-          <span className="font-mono text-[10px] tracking-[0.08em] text-subtle">{formatDexNumber(node.id)}</span>
-          <span className="mt-1 block text-sm font-semibold tracking-[-0.025em] text-foreground">{node.displayName}</span>
-        </div>
-      </Link>
-      {node.evolutionCondition ? <p className="mt-2 text-center text-[10px] leading-4 text-muted">{node.evolutionCondition}</p> : null}
-    </div>
-  );
-}
-
-function EvolutionSequence({ from, node }: EvolutionNodeProps): React.JSX.Element {
-  return (
-    <div className="flex min-w-max items-start gap-3">
-      <EvolutionNode from={from} node={node} />
-      {node.evolvesTo.length > 0 ? (
-        <div className="flex gap-3 border-l hairline pl-3">
+    <div className="evolution-chain">
+      <div className="evolution-node">
+        <Link
+          href={getDetailHref(node.name, from)}
+          replace
+          scroll={false}
+          prefetch={false}
+          aria-current={node.name === current ? "page" : undefined}
+        >
+          <div className="evolution-artwork">
+            <PokemonArtwork
+              alt={node.displayName + " artwork"}
+              src={node.artworkUrl}
+              priority={false}
+              sizes="96px"
+              retryable={false}
+            />
+          </div>
+          <strong>{node.displayName}</strong>
+        </Link>
+        <p>{node.evolutionCondition || "Base species"}</p>
+      </div>
+      {!!node.evolvesTo.length && (
+        <div className="evolution-branches">
           {node.evolvesTo.map((child) => (
-            <div className="flex items-start gap-3" key={child.id}>
-              <ChevronRight aria-hidden className="mt-12 shrink-0 text-subtle" size={16} strokeWidth={1.5} />
-              <EvolutionSequence from={from} node={child} />
+            <div className="evolution-branch" key={child.id}>
+              <ChevronRight className="evolution-arrow" size={18} aria-hidden />
+              <EvolutionSequence node={child} from={from} current={current} />
             </div>
           ))}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
-
-function StatBar({ label, value }: { label: string; value: number }): React.JSX.Element {
-  const scale = Math.min(value, 255) / 255;
-
+function StatBar({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}): React.JSX.Element {
   return (
-    <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-xs text-muted">{label}</span>
-        <span className="font-mono text-xs text-foreground">{value}</span>
+    <div className="stat-row">
+      <span>{label}</span>
+      <div className="stat-track" aria-hidden>
+        <motion.div
+          className="stat-fill"
+          initial={false}
+          animate={{ scaleX: Math.min(value, 255) / 255 }}
+        />
       </div>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-muted">
-        <motion.div animate={{ scaleX: scale }} className="h-full origin-left rounded-full bg-brand" initial={{ scaleX: 0 }} transition={{ type: "spring", stiffness: 160, damping: 24 }} />
-      </div>
+      <span className="stat-value">{value}</span>
     </div>
   );
 }
-
-function TypeHistory({ detail }: { detail: PokemonDetail }): React.JSX.Element {
-  if (detail.historicalTypes.length === 0) {
-    return <p className="text-sm leading-6 text-muted">No historical type changes are recorded for this Pokémon.</p>;
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="max-w-xl text-sm leading-6 text-muted">The main index uses the current canonical type. Older games may have represented this Pokémon differently.</p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {detail.historicalTypes.map((history) => (
-          <div className="rounded-xl border hairline bg-surface/45 p-3" key={history.generation}>
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-subtle">{history.generation}</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {history.types.map((type: PokemonTypeName) => <TypeBadge key={type} type={type} />)}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function PokemonDetailView({ detail, from }: PokemonDetailViewProps): React.JSX.Element {
+export function PokemonDetailView({
+  detail,
+  from: serverFrom,
+  next,
+}: Props): React.JSX.Element {
   const [isShiny, setIsShiny] = useState(false);
-  const artworkUrl = isShiny && detail.shinyArtworkUrl ? detail.shinyArtworkUrl : detail.artworkUrl;
+  const mobile = useMobile();
+  const { enteredFromIndex } = useIndexNavigation();
+  const reduced = useReducedMotion();
+  const router = useRouter();
+  const params = useSearchParams();
+  const from = params.get("from")
+    ? parseReturnPath(params.get("from") || undefined)
+    : serverFrom;
+  const pane = useRef<HTMLElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const edgeStart = useRef<{ x: number; y: number } | null>(null);
+  const shiny = isShiny && !!detail.shinyArtworkUrl;
+  const artwork = shiny ? detail.shinyArtworkUrl : detail.artworkUrl;
   const moveGroups = useMemo(() => groupMoves(detail.moves), [detail.moves]);
-  const hasVariants = detail.variants.length > 1;
-  const canShowShiny = detail.shinyArtworkUrl !== null;
-
+  const generation = getGenerationSummary(detail.introductionGeneration);
+  const total = detail.stats.reduce((sum, stat) => sum + stat.value, 0);
+  function back(): void {
+    if (enteredFromIndex && mobile) router.back();
+    else router.replace(from, { scroll: false });
+  }
+  useEffect(() => {
+    if (pane.current) pane.current.scrollTop = 0;
+    if (mobile) heading.current?.focus({ preventScroll: true });
+  }, [detail.speciesName, mobile]);
+  useEffect(() => {
+    if (!mobile) return;
+    const before = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = before;
+    };
+  }, [mobile]);
+  useEffect(() => {
+    function escape(event: KeyboardEvent): void {
+      if (event.key !== "Escape" || event.defaultPrevented || !mobile) return;
+      if ((event.target as Element)?.closest?.("[data-popover='open']")) return;
+      event.preventDefault();
+      if (enteredFromIndex) router.back();
+      else router.replace(from, { scroll: false });
+    }
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [from, enteredFromIndex, mobile, router]);
   return (
-    <main className="site-shell pb-20">
-      <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-foreground" href={from}>
-        <ArrowLeft aria-hidden size={16} strokeWidth={1.7} />
+    <motion.article
+      ref={pane}
+      className="detail-pane plate"
+      aria-labelledby="species-heading"
+      initial={{ opacity: 0, x: mobile && !reduced ? "100%" : 0 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: mobile && !reduced ? "100%" : 0 }}
+      transition={{
+        duration: reduced ? 0 : mobile ? 0.24 : 0.18,
+        ease: [0.25, 1, 0.5, 1],
+      }}
+    >
+      {mobile && (
+        <span
+          className="swipe-edge"
+          aria-hidden
+          onPointerDown={(event) => {
+            if (event.pointerType === "touch") {
+              edgeStart.current = { x: event.clientX, y: event.clientY };
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }
+          }}
+          onPointerUp={(event) => {
+            const start = edgeStart.current;
+            edgeStart.current = null;
+            if (
+              start &&
+              event.clientX - start.x > 70 &&
+              Math.abs(event.clientY - start.y) < 50
+            )
+              back();
+          }}
+        />
+      )}
+      <Link
+        className="fg-button detail-back"
+        href={from}
+        replace
+        scroll={false}
+        onClick={(event) => {
+          if (mobile) {
+            event.preventDefault();
+            back();
+          }
+        }}
+      >
+        <ArrowLeft size={17} aria-hidden />
         Back to index
       </Link>
-
-      <section className="mt-5 grid gap-7 sm:grid-cols-[0.92fr_1.08fr] sm:items-end sm:gap-8">
-        <motion.div animate={{ opacity: 1, y: 0 }} className="artwork-stage relative aspect-square overflow-hidden rounded-[28px]" initial={{ opacity: 0, y: 8 }} transition={{ duration: 0.45, ease: "easeOut" }}>
-          <motion.div animate={{ opacity: 1, scale: 1 }} className="absolute inset-0" initial={{ opacity: 0, scale: 0.94 }} key={artworkUrl} transition={{ type: "spring", stiffness: 260, damping: 24 }}>
-            <PokemonArtwork alt={`${detail.displayName} artwork`} priority src={artworkUrl} />
-          </motion.div>
-          <span className="absolute left-4 top-4 rounded-lg bg-surface/70 px-2.5 py-1.5 font-mono text-[11px] tracking-[0.1em] text-muted backdrop-blur-md">{formatDexNumber(detail.id)}</span>
-        </motion.div>
-
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-brand">{detail.genus ?? "Pokémon species"}</p>
-          <h1 className="mt-3 text-5xl font-semibold tracking-[-0.075em] text-foreground sm:text-6xl">{detail.displayName}</h1>
-          {detail.formName ? <p className="mt-3 text-sm font-medium text-muted">Form / {detail.formName}</p> : null}
-          <div className="mt-5 flex flex-wrap gap-2">
-            {detail.types.map((type) => <TypeBadge key={type} type={type} />)}
-            {detail.isLegendary ? <span className="rounded-md bg-brand/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">Legendary</span> : null}
-            {detail.isMythical ? <span className="rounded-md bg-brand/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">Mythical</span> : null}
-          </div>
-          <p className="mt-6 max-w-prose text-[15px] leading-7 text-muted">{detail.description ?? "A detailed field note is not available for this species."}</p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <motion.button
-              aria-checked={isShiny}
-              aria-label={canShowShiny ? "Shiny artwork" : "Shiny artwork unavailable"}
-              className={`inline-flex min-h-11 items-center gap-3 rounded-xl border px-3.5 text-sm font-semibold transition-colors ${isShiny ? "border-brand/45 bg-brand/10 text-brand" : "hairline text-muted hover:text-foreground"} disabled:cursor-not-allowed disabled:opacity-55`}
-              disabled={!canShowShiny}
-              onClick={() => setIsShiny((current) => !current)}
-              role="switch"
-              type="button"
-              whileTap={canShowShiny ? { scale: 0.98 } : undefined}
+      <div className="detail-content">
+        <div className="detail-topline">
+          <p className="meta">
+            {formatDexNumber(detail.id)} / {generation.label}
+          </p>
+          {next && from === serverFrom && (
+            <Link
+              className="fg-button"
+              href={next.href}
+              replace
+              scroll={false}
+              prefetch={false}
             >
-              <Sparkles aria-hidden size={16} strokeWidth={1.7} />
-              <span>Shiny</span>
-              <span aria-hidden className={`relative h-6 w-11 rounded-full p-0.5 transition-colors ${isShiny ? "bg-brand/80" : "bg-surface-muted"}`}>
-                <motion.span
-                  animate={{ x: isShiny ? 20 : 0 }}
-                  className={`absolute left-0.5 top-0.5 size-5 rounded-full shadow-sm ${isShiny ? "bg-background" : "bg-foreground"}`}
-                  initial={false}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              Next: {next.label}
+              <span aria-hidden>→</span>
+            </Link>
+          )}
+        </div>
+        <div className="species-hero">
+          <div className="artwork-stage">
+            <AnimatePresence mode="sync" initial={false}>
+              <motion.div
+                key={artwork || "unavailable"}
+                className="artwork-frame"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduced ? 0 : 0.18 }}
+              >
+                <PokemonArtwork
+                  alt={
+                    detail.displayName + (shiny ? " shiny" : "") + " artwork"
+                  }
+                  src={artwork}
+                  priority
+                  sizes="(max-width: 699px) 80vw, 310px"
                 />
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.12em]">{canShowShiny ? (isShiny ? "On" : "Off") : "N/A"}</span>
-            </motion.button>
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
-      </section>
-
-      {hasVariants ? (
-        <section aria-labelledby="variant-heading" className="mt-10">
-          <div className="flex items-baseline justify-between gap-4">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-subtle">Species family</p>
-              <h2 className="mt-1 text-lg font-semibold tracking-[-0.035em]" id="variant-heading">Choose a form</h2>
+          <div className="species-identity">
+            <p className="uppercase-label">
+              {detail.genus || "Pokémon species"}
+            </p>
+            <h1
+              ref={heading}
+              tabIndex={-1}
+              id="species-heading"
+              className="species-title"
+            >
+              {detail.displayName}
+            </h1>
+            {detail.formName && <p className="form-name">{detail.formName}</p>}
+            <div className="species-types">
+              {detail.types.map((type) => (
+                <TypeBadge key={type} type={type} />
+              ))}
+              {detail.isLegendary && (
+                <span className="type-badge">Legendary</span>
+              )}
+              {detail.isMythical && (
+                <span className="type-badge">Mythical</span>
+              )}
             </div>
-            <p className="font-mono text-xs text-muted">{detail.variants.length.toString().padStart(2, "0")} forms</p>
+            <p className="species-description">
+              {detail.description ||
+                "A field note is not available for this species."}
+            </p>
           </div>
-          <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-            {detail.variants.map((variant) => {
-              const isSelected = variant.id === detail.id;
-
-              return (
-                <Link
-                  aria-current={isSelected ? "page" : undefined}
-                  className={`w-28 shrink-0 rounded-2xl border p-2 transition-colors ${isSelected ? "border-brand/55 bg-brand/8" : "hairline bg-surface/35 hover:bg-surface-muted/60"}`}
-                  href={getVariantHref(from, detail.speciesName, variant.name, variant.isDefault)}
-                  key={variant.id}
-                >
-                  <div className="artwork-stage relative aspect-square overflow-hidden rounded-xl">
-                    <PokemonArtwork alt={`${variant.displayName} artwork`} priority={false} src={variant.artworkUrl} />
-                  </div>
-                  <p className="mt-2 truncate text-xs font-semibold text-foreground">{variant.displayName}</p>
-                  <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.08em] text-subtle">{variant.isDefault ? "Default" : "Form"}</p>
-                </Link>
-              );
-            })}
+        </div>
+        <section className="form-appearance" aria-label="Form and appearance">
+          <label
+            className="uppercase-label"
+            htmlFor={
+              detail.variants.length > 1 ? "variant-selector" : undefined
+            }
+          >
+            Form
+          </label>
+          {detail.variants.length > 1 ? (
+            <select
+              id="variant-selector"
+              className="fg-button form-select"
+              value={
+                detail.variants.find((v) => v.id === detail.variantId)?.name
+              }
+              onChange={(event) => {
+                const variant = detail.variants.find(
+                  (v) => v.name === event.target.value,
+                );
+                router.replace(
+                  getDetailHref(
+                    detail.speciesName,
+                    from,
+                    variant?.isDefault ? undefined : variant?.name,
+                  ),
+                  { scroll: false },
+                );
+              }}
+            >
+              {detail.variants.map((v) => (
+                <option key={v.id} value={v.name}>
+                  {v.isDefault ? "Default form" : v.displayName}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="form-readonly">
+              Default form<span>Only form</span>
+            </div>
+          )}
+          <h2 className="appearance-heading">Appearance</h2>
+          <div className="appearance-buttons">
+            <button
+              className={`fg-button ${!shiny ? "primary" : ""}`}
+              type="button"
+              aria-pressed={!shiny}
+              onClick={() => setIsShiny(false)}
+            >
+              Default
+            </button>
+            <button
+              className={`fg-button ${shiny ? "primary" : ""}`}
+              type="button"
+              aria-pressed={shiny}
+              disabled={!detail.shinyArtworkUrl}
+              onClick={() => setIsShiny(true)}
+            >
+              {detail.shinyArtworkUrl ? "Shiny" : "Shiny unavailable"}
+            </button>
           </div>
+          <p className="appearance-note">
+            {shiny
+              ? "Shiny appearance, same species."
+              : "Changes artwork only."}
+          </p>
         </section>
-      ) : null}
-
-      <section aria-labelledby="stats-heading" className="mt-12">
-        <div className="flex items-baseline justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-subtle">At a glance</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]" id="stats-heading">Base stats</h2>
-          </div>
-          <p className="font-mono text-xs text-muted">Current form</p>
+        <div className="detail-data">
+          <section aria-labelledby="stats-heading">
+            <h2 id="stats-heading">Base stats</h2>
+            <div className="stats-list">
+              {detail.stats.map((stat) => (
+                <StatBar
+                  key={stat.name}
+                  label={stat.label}
+                  value={stat.value}
+                />
+              ))}
+            </div>
+            <p className="meta stat-total">TOTAL {total} / SCALE 0–255</p>
+          </section>
+          <section
+            className="ability-section"
+            aria-labelledby="abilities-heading"
+          >
+            <h2 id="abilities-heading">Abilities</h2>
+            {detail.abilities.length ? (
+              detail.abilities.map((ability) => (
+                <div className="ability-item" key={ability.name}>
+                  <h3>{ability.displayName}</h3>
+                  <p>
+                    {ability.description ||
+                      "An effect description is not available."}
+                  </p>
+                  {ability.isHidden && (
+                    <span className="uppercase-label">Hidden ability</span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="muted">No abilities are recorded.</p>
+            )}
+          </section>
         </div>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          {detail.stats.map((stat) => <StatBar key={stat.name} label={stat.label} value={stat.value} />)}
-        </div>
-      </section>
-
-      <section aria-label="Pokémon details" className="mt-12">
-        <ExpandableSection defaultOpen eyebrow="Family tree" title="Evolution">
-          <div className="-mx-1 overflow-x-auto px-1 pb-2">
-            {detail.evolution ? <EvolutionSequence from={from} node={detail.evolution} /> : <p className="text-sm text-muted">No evolution chain is recorded.</p>}
-          </div>
-        </ExpandableSection>
-
-        <ExpandableSection defaultOpen={false} eyebrow={`${detail.abilities.length.toString().padStart(2, "0")} recorded`} title="Abilities">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {detail.abilities.map((ability) => (
-              <div className="flex items-center justify-between gap-3 rounded-xl border hairline bg-surface/35 px-3.5 py-3" key={ability.name}>
-                <span className="text-sm font-medium text-foreground">{ability.displayName}</span>
-                {ability.isHidden ? <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-brand">Hidden</span> : null}
-              </div>
-            ))}
-          </div>
-        </ExpandableSection>
-
-        <ExpandableSection defaultOpen={false} eyebrow={`${detail.moves.length.toString().padStart(3, "0")} grouped`} title="Moves">
-          <div className="space-y-6">
-            {moveGroups.map(([method, moves]) => (
-              <div key={method}>
-                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-subtle">{method}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {moves.map((move) => <span className="rounded-lg border hairline bg-surface/35 px-2.5 py-2 text-xs text-muted" key={`${method}-${move.name}`}>{move.displayName}</span>)}
+        <section
+          className="evolution-section"
+          aria-labelledby="evolution-heading"
+        >
+          <h2 id="evolution-heading">Evolution</h2>
+          {detail.evolution ? (
+            <div className="evolution-scroll">
+              <EvolutionSequence
+                node={detail.evolution}
+                from={from}
+                current={detail.speciesName}
+              />
+            </div>
+          ) : (
+            <p className="muted">No evolution chain is recorded.</p>
+          )}
+        </section>
+        <ExpandableSection
+          defaultOpen={false}
+          title="Moves"
+          eyebrow="Grouped by learn method"
+        >
+          {moveGroups.length ? (
+            moveGroups.map(([method, moves]) => (
+              <div className="move-group" key={method}>
+                <h3>{method}</h3>
+                <div className="move-chips">
+                  {moves.map((move) => (
+                    <span className="move-chip" key={move.name}>
+                      {move.displayName}
+                    </span>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
+            ))
+          ) : (
+            <p className="muted">No moves are recorded.</p>
+          )}
         </ExpandableSection>
-
-        <ExpandableSection defaultOpen={false} eyebrow="Canonical vs historical" title="Version details">
-          <TypeHistory detail={detail} />
+        <ExpandableSection
+          defaultOpen={false}
+          title="Version details"
+          eyebrow="Current canonical types and historical representations"
+        >
+          <p className="muted">
+            {detail.historicalTypes.length
+              ? "The index uses current canonical types. Older games may have represented this species differently."
+              : "No historical type changes are recorded for this species."}
+          </p>
+          {!!detail.historicalTypes.length && (
+            <div className="history-list">
+              {detail.historicalTypes.map((history) => (
+                <div key={history.generation}>
+                  <p className="meta">{history.generation}</p>
+                  <div className="species-types">
+                    {history.types.map((type) => (
+                      <TypeBadge key={type} type={type} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </ExpandableSection>
-      </section>
-    </main>
+        <footer className="detail-footer">
+          Reference data from{" "}
+          <a href="https://pokeapi.co" target="_blank" rel="noreferrer">
+            PokéAPI
+          </a>{" "}
+          / official species artwork
+        </footer>
+      </div>
+    </motion.article>
   );
 }

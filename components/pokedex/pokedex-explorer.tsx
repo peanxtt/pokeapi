@@ -1,214 +1,469 @@
 "use client";
 
-import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-
+import Link, { useLinkStatus } from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { X, Search, LoaderCircle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GENERATIONS } from "@/lib/pokedex/generations";
-import { formatDexNumber, formatDisplayName } from "@/lib/pokedex/format";
-import { POKEMON_TYPES, type CatalogScope, type PokemonCatalog, type PokemonTypeName } from "@/lib/pokedex/types";
-
+import { formatDisplayName } from "@/lib/pokedex/format";
+import {
+  getBrowsePath,
+  getDetailHref,
+  matchesQuery,
+} from "@/lib/pokedex/query";
+import {
+  POKEMON_TYPES,
+  type CatalogScope,
+  type PokemonCatalog,
+  type PokemonTypeName,
+} from "@/lib/pokedex/types";
 import { PokemonListRow } from "@/components/pokedex/pokemon-list-row";
+import { ControlPopover } from "@/components/pokedex/control-popover";
+import {
+  GuideEmblem,
+  useIndexNavigation,
+} from "@/components/pokedex/guide-shell";
+import { useMobile } from "@/components/pokedex/use-mobile";
 
-type PokedexExplorerProps = {
+type Props = {
   catalog: PokemonCatalog;
   initialQuery: string;
   initialTypes: PokemonTypeName[];
   scope: CatalogScope;
 };
-
-function getScopeHref(scope: CatalogScope): string {
-  return scope === "all" ? "/?generation=all" : `/?generation=${scope}`;
+type Snapshot = { top: number; species?: string; limit?: number };
+function ScopePending(): React.JSX.Element | null {
+  const { pending } = useLinkStatus();
+  return pending ? (
+    <span role="status">
+      <LoaderCircle
+        className="row-pending"
+        size={16}
+        aria-label="Loading generation"
+      />
+    </span>
+  ) : null;
 }
-
-function getBrowsePath(scope: CatalogScope, query: string, types: PokemonTypeName[]): string {
-  const params = new URLSearchParams();
-  params.set("generation", scope.toString());
-
-  if (query.trim().length > 0) {
-    params.set("q", query.trim());
+function readSnapshot(key: string): Snapshot | null {
+  try {
+    const value = sessionStorage.getItem("pokedex-browse:" + key);
+    return value ? JSON.parse(value) : null;
+  } catch {
+    return null;
   }
-
-  if (types.length > 0) {
-    params.set("types", types.join(","));
-  }
-
-  return `/?${params.toString()}`;
 }
-
-function getDetailHref(
-  scope: CatalogScope,
-  query: string,
-  types: PokemonTypeName[],
-  pokemonName: string,
-): string {
-  const from = encodeURIComponent(getBrowsePath(scope, query, types));
-  return `/pokemon/${pokemonName}?from=${from}`;
+function saveSnapshot(key: string, snapshot: Snapshot): void {
+  try {
+    sessionStorage.setItem("pokedex-browse:" + key, JSON.stringify(snapshot));
+  } catch {}
 }
-
-function isMatchingQuery(name: string, id: number, query: string): boolean {
-  const normalizedQuery = query.trim().toLowerCase();
-
-  if (normalizedQuery.length === 0) {
-    return true;
-  }
-
-  return name.includes(normalizedQuery) || id.toString() === normalizedQuery || formatDexNumber(id).includes(normalizedQuery);
-}
-
-export function PokedexExplorer({ catalog, initialQuery, initialTypes, scope }: PokedexExplorerProps): React.JSX.Element {
+export function PokedexExplorer({
+  catalog,
+  initialQuery,
+  initialTypes,
+  scope,
+}: Props): React.JSX.Element {
   const [query, setQuery] = useState(initialQuery);
-  const [selectedTypes, setSelectedTypes] = useState<PokemonTypeName[]>(initialTypes);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      window.history.replaceState(null, "", getBrowsePath(scope, query, selectedTypes));
-    }, 240);
-
-    return () => window.clearTimeout(timeout);
-  }, [query, scope, selectedTypes]);
-
-  const visiblePokemon = useMemo(
-    () => catalog.pokemon.filter((pokemon) => {
-      const matchesQuery = isMatchingQuery(pokemon.name, pokemon.id, query);
-      const matchesType = selectedTypes.length === 0 || selectedTypes.some((type) => pokemon.types.includes(type));
-      return matchesQuery && matchesType;
-    }),
+  const [selectedTypes, setSelectedTypes] = useState(initialTypes);
+  const [draftTypes, setDraftTypes] = useState(initialTypes);
+  const [limit, setLimit] = useState(40);
+  const [serverState, setServerState] = useState(
+    initialQuery + "|" + initialTypes.join(","),
+  );
+  const propsState = initialQuery + "|" + initialTypes.join(",");
+  if (serverState !== propsState) {
+    setServerState(propsState);
+    setQuery(initialQuery);
+    setSelectedTypes(initialTypes);
+  }
+  const dirty = useRef(false);
+  const list = useRef<HTMLDivElement>(null);
+  const previousSpecies = useRef<string | null>(null);
+  const lastClicked = useRef<string | undefined>(undefined);
+  const mobile = useMobile();
+  const { markIndexEntry } = useIndexNavigation();
+  const pathname = usePathname();
+  const router = useRouter();
+  const selectedSpecies = pathname.startsWith("/pokemon/")
+    ? decodeURIComponent(pathname.split("/")[2] || "")
+    : null;
+  const browsePath = getBrowsePath(scope, query, selectedTypes);
+  const visible = useMemo(
+    () =>
+      catalog.pokemon.filter(
+        (p) =>
+          matchesQuery(p.name, p.id, query) &&
+          (!selectedTypes.length ||
+            selectedTypes.some((t) => p.types.includes(t))),
+      ),
     [catalog.pokemon, query, selectedTypes],
   );
+  const draftCount = catalog.pokemon.filter(
+    (p) =>
+      matchesQuery(p.name, p.id, query) &&
+      (!draftTypes.length || draftTypes.some((t) => p.types.includes(t))),
+  ).length;
+  const selectionVisible =
+    !selectedSpecies || visible.some((p) => p.name === selectedSpecies);
+  const selectedIndex = visible.findIndex((p) => p.name === selectedSpecies);
+  if (selectedIndex >= limit)
+    setLimit(Math.ceil((selectedIndex + 1) / 40) * 40);
 
-  function toggleType(type: PokemonTypeName): void {
-    setSelectedTypes((currentTypes) => currentTypes.includes(type)
-      ? currentTypes.filter((currentType) => currentType !== type)
-      : [...currentTypes, type]);
+  useEffect(() => {
+    if (!dirty.current) return;
+    const timeout = setTimeout(() => {
+      if (!dirty.current) return;
+      dirty.current = false;
+      if (selectedSpecies && !selectionVisible)
+        router.replace(browsePath, { scroll: false });
+      else if (selectedSpecies) {
+        const params = new URLSearchParams(window.location.search);
+        params.set("from", browsePath);
+        window.history.replaceState(null, "", pathname + "?" + params);
+      } else window.history.replaceState(null, "", browsePath);
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [browsePath, pathname, selectedSpecies, selectionVisible, router]);
+
+  useEffect(() => {
+    const snapshot = readSnapshot(
+      getBrowsePath(scope, initialQuery, initialTypes),
+    );
+    if (!snapshot) return;
+    lastClicked.current = snapshot.species;
+    let restoreFrame = 0;
+    const frame = requestAnimationFrame(() => {
+      setLimit((current) => Math.max(current, snapshot.limit || 40));
+      restoreFrame = requestAnimationFrame(() => {
+        if (list.current) list.current.scrollTop = snapshot.top;
+        if (!window.location.pathname.startsWith("/pokemon/")) {
+          if (mobile) window.scrollTo(0, snapshot.top);
+          const row = Array.from(
+            list.current?.querySelectorAll<HTMLAnchorElement>(
+              "[data-species]",
+            ) || [],
+          ).find((row) => row.dataset.species === snapshot.species);
+          row?.focus({ preventScroll: true });
+        }
+      });
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      cancelAnimationFrame(restoreFrame);
+    };
+  }, [scope, initialQuery, initialTypes, mobile]);
+
+  useEffect(() => {
+    if (!selectedSpecies && previousSpecies.current && list.current) {
+      const row = Array.from(
+        list.current.querySelectorAll<HTMLAnchorElement>("[data-species]"),
+      ).find((row) => row.dataset.species === previousSpecies.current);
+      row?.focus({ preventScroll: true });
+    }
+    previousSpecies.current = selectedSpecies;
+    if (!mobile && selectedSpecies && lastClicked.current !== selectedSpecies) {
+      const row = Array.from(
+        list.current?.querySelectorAll<HTMLAnchorElement>("[data-species]") ||
+          [],
+      ).find((row) => row.dataset.species === selectedSpecies);
+      row?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+  }, [selectedSpecies, mobile]);
+
+  function record(): void {
+    saveSnapshot(browsePath, {
+      top: mobile ? window.scrollY : list.current?.scrollTop || 0,
+      species: lastClicked.current,
+      limit,
+    });
   }
-
-  function clearFilters(): void {
+  function clear(): void {
+    dirty.current = true;
     setQuery("");
     setSelectedTypes([]);
+    setLimit(40);
   }
+  function generationMenu(close: () => void): React.ReactNode {
+    return (
+      <nav className="menu-options" aria-label="Choose a generation">
+        {[
+          ...GENERATIONS.map((g) => ({
+            scope: g.id as CatalogScope,
+            label: g.label + " / " + g.region,
+          })),
+          { scope: "all" as CatalogScope, label: "All generations" },
+        ].map((g) => (
+          <Link
+            key={g.scope}
+            href={getBrowsePath(g.scope)}
+            scroll={false}
+            className={`menu-option ${g.scope === scope ? "selected" : ""}`}
+            aria-current={g.scope === scope ? "page" : undefined}
+            onClick={() => {
+              if (g.scope === scope) close();
+            }}
+          >
+            {g.label}
+            <ScopePending />
+            {g.scope === scope && (
+              <span className="menu-check" aria-hidden>
+                ✓
+              </span>
+            )}
+          </Link>
+        ))}
+      </nav>
+    );
+  }
+  const generationControl = (
+    <ControlPopover
+      title="Generation"
+      active
+      label={
+        scope === "all"
+          ? "All generations"
+          : catalog.generation.label + " / " + catalog.generation.region
+      }
+    >
+      {generationMenu}
+    </ControlPopover>
+  );
 
   return (
-    <main className="site-shell pb-20">
-      <section aria-labelledby="pokedex-heading" className="pt-8 sm:pt-12">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand">National reference</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.065em] text-foreground sm:text-5xl" id="pokedex-heading">
-          Know every Pokémon.
+    <>
+      <div className="scope-strip">
+        <div className="scope-inner">
+          <span>
+            {scope === "all"
+              ? "All generations"
+              : catalog.generation.label + " / " + catalog.generation.region}
+          </span>
+          <span className="scope-count">
+            {catalog.pokemon.length} species / national order
+          </span>
+        </div>
+      </div>
+      <header className="workspace-intro" inert={mobile && !!selectedSpecies}>
+        <h1>
+          <span>Explore the </span>Pokédex
         </h1>
-      </section>
-
-      <nav aria-label="Choose a generation" className="mt-10 -mx-1 overflow-x-auto pb-1">
-        <div className="flex min-w-max gap-1 px-1">
+        <p>
+          {mobile
+            ? "Find a familiar face. Discover another."
+            : "Choose a generation, then find a species by name or number."}
+        </p>
+        <div className="compact-generation">{generationControl}</div>
+      </header>
+      <nav
+        className="generation-rail"
+        aria-label="Choose a generation"
+        inert={mobile && !!selectedSpecies}
+      >
+        <p className="uppercase-label">Generations</p>
+        {GENERATIONS.map((g) => (
           <Link
-            aria-current={scope === "all" ? "page" : undefined}
-            className={`rounded-lg px-3 py-2 text-sm transition-colors ${scope === "all" ? "border border-line-strong bg-surface-strong text-foreground" : "text-muted hover:bg-surface-muted hover:text-foreground"}`}
-            href={getScopeHref("all")}
+            className="generation-link"
+            href={getBrowsePath(g.id)}
+            scroll={false}
+            aria-current={scope === g.id ? "page" : undefined}
+            key={g.id}
           >
-            All
+            {g.label}
+            <ScopePending />
           </Link>
-          {GENERATIONS.map((generation) => (
-            <Link
-              aria-current={scope === generation.id ? "page" : undefined}
-              className={`rounded-lg px-3 py-2 text-sm transition-colors ${scope === generation.id ? "border border-line-strong bg-surface-strong text-foreground" : "text-muted hover:bg-surface-muted hover:text-foreground"}`}
-              href={getScopeHref(generation.id)}
-              key={generation.id}
-            >
-              {generation.label}
-            </Link>
-          ))}
-        </div>
+        ))}
+        <Link
+          className="generation-link"
+          href={getBrowsePath("all")}
+          scroll={false}
+          aria-current={scope === "all" ? "page" : undefined}
+        >
+          All generations
+          <ScopePending />
+        </Link>
+        <p className="rail-note">Names and numbers search this scope.</p>
       </nav>
-
-      <section aria-label="Pokédex controls" className="glass-surface mt-5 rounded-2xl p-3 sm:p-4">
-        <label className="flex min-h-11 items-center gap-3 rounded-xl border hairline bg-surface/55 px-3 text-muted" htmlFor="pokemon-search">
-          <Search aria-hidden size={17} strokeWidth={1.8} />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-subtle"
-            id="pokemon-search"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={scope === "all" ? "Search every generation" : `Search ${catalog.generation.region}`}
-            type="search"
-            value={query}
-          />
-          {query.length > 0 ? (
-            <button aria-label="Clear search" className="text-subtle transition-colors hover:text-foreground" onClick={() => setQuery("")} type="button">
-              <X aria-hidden size={16} />
-            </button>
-          ) : null}
-        </label>
-
-        <div className="mt-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
-          <SlidersHorizontal aria-hidden size={14} strokeWidth={1.8} />
-          <span>Filter by type</span>
-          {selectedTypes.length > 0 ? <span className="font-mono normal-case tracking-normal text-brand">{selectedTypes.length} selected</span> : null}
-        </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-          {POKEMON_TYPES.map((type) => {
-            const isSelected = selectedTypes.includes(type);
-
-            return (
-              <button
-                aria-pressed={isSelected}
-                className={`type-badge shrink-0 rounded-lg border px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.11em] transition-[background-color,border-color,box-shadow,color,opacity] ${isSelected ? "border-foreground/35 ring-2 ring-brand/30" : "border-transparent opacity-65 hover:opacity-100"}`}
-                data-type={type}
-                key={type}
-                onClick={() => toggleType(type)}
-                type="button"
-              >
-                {formatDisplayName(type)}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section aria-live="polite" className="mt-10">
-        <div className="flex items-baseline justify-between gap-4">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-subtle">{catalog.generation.region}</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-foreground">{catalog.generation.label} index</h2>
-          </div>
-          <p className="font-mono text-xs text-muted">{visiblePokemon.length.toString().padStart(3, "0")} shown</p>
-        </div>
-
-        <AnimatePresence mode="wait" initial={false}>
-          {visiblePokemon.length > 0 ? (
-            <motion.ul
-              animate="visible"
-              className="mt-3"
-              initial="hidden"
-              key={`${query}-${selectedTypes.join("-")}`}
-              variants={{
-                hidden: {},
-                visible: { transition: { staggerChildren: 0.025 } },
+      <section
+        className="index-pane plate"
+        aria-label="Pokédex index"
+        inert={mobile && !!selectedSpecies}
+      >
+        <div className="index-header">
+          <h2 className="index-heading">
+            {scope === "all" ? "National" : catalog.generation.region} index
+          </h2>
+          <p className="uppercase-label">
+            {scope === "all" ? "All generations" : catalog.generation.label}
+          </p>
+          <label className="search-label" htmlFor="pokemon-search">
+            Search by name or number
+          </label>
+          <div className="search-field">
+            <input
+              id="pokemon-search"
+              type="search"
+              autoComplete="off"
+              placeholder="e.g. Bulbasaur or 0001"
+              value={query}
+              onChange={(e) => {
+                dirty.current = true;
+                setQuery(e.target.value);
+                setLimit(40);
               }}
-            >
-              {visiblePokemon.map((pokemon, index) => (
-                <motion.li
-                  key={pokemon.id}
-                  variants={{ hidden: { opacity: 0, y: 7 }, visible: { opacity: 1, y: 0 } }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                >
-                  <PokemonListRow
-                    detailHref={getDetailHref(scope, query, selectedTypes, pokemon.name)}
-                    pokemon={pokemon}
-                    priority={index < 4}
-                  />
-                </motion.li>
-              ))}
-            </motion.ul>
-          ) : (
-            <motion.div animate={{ opacity: 1, y: 0 }} className="mt-4 rounded-2xl border hairline bg-surface/55 px-5 py-8" initial={{ opacity: 0, y: 6 }}>
-              <p className="text-sm font-medium text-foreground">No Pokémon match this view.</p>
-              <p className="mt-1 text-sm leading-6 text-muted">Try a different name, number, or type filter.</p>
-              <button className="mt-4 text-sm font-semibold text-brand underline decoration-brand/35 underline-offset-4" onClick={clearFilters} type="button">
-                Clear filters
+            />
+            {query && (
+              <button
+                className="icon-button"
+                type="button"
+                aria-label="Clear search"
+                onClick={() => {
+                  dirty.current = true;
+                  setQuery("");
+                }}
+              >
+                <X size={16} aria-hidden />
               </button>
-            </motion.div>
+            )}
+          </div>
+          <div className="mobile-scope-controls">
+            {generationControl}
+            <Link
+              className={`fg-button ${scope === "all" ? "primary" : ""}`}
+              href={getBrowsePath("all")}
+              scroll={false}
+            >
+              All
+              <ScopePending />
+            </Link>
+          </div>
+          <div className="filter-toolbar">
+            <ControlPopover
+              title="Filter by type"
+              label={
+                selectedTypes.length
+                  ? `Types (${selectedTypes.length})`
+                  : "Types"
+              }
+              active={selectedTypes.length > 0}
+              onOpen={() => setDraftTypes(selectedTypes)}
+            >
+              {(close) => (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    dirty.current = true;
+                    setSelectedTypes(draftTypes);
+                    setLimit(40);
+                    close();
+                  }}
+                >
+                  <p>Matches either selected type, within this generation.</p>
+                  <div className="type-options">
+                    {POKEMON_TYPES.map((type) => (
+                      <label className="type-option" key={type}>
+                        <input
+                          type="checkbox"
+                          checked={draftTypes.includes(type)}
+                          onChange={() =>
+                            setDraftTypes((current) =>
+                              current.includes(type)
+                                ? current.filter((t) => t !== type)
+                                : [...current, type],
+                            )
+                          }
+                        />
+                        {formatDisplayName(type)}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="popover-actions">
+                    <button
+                      className="fg-button"
+                      type="button"
+                      onClick={() => setDraftTypes([])}
+                    >
+                      Clear
+                    </button>
+                    <button className="fg-button primary" type="submit">
+                      Show {draftCount} species
+                    </button>
+                  </div>
+                </form>
+              )}
+            </ControlPopover>
+            <span className="result-count" role="status">
+              {visible.length}{" "}
+              {query || selectedTypes.length ? "results" : "species"}
+            </span>
+          </div>
+        </div>
+        <div
+          ref={list}
+          className="catalog-list"
+          onScroll={record}
+          onClickCapture={(event) => {
+            const row = (event.target as Element).closest<HTMLAnchorElement>(
+              "[data-species]",
+            );
+            if (row) {
+              // Flush a pending search before the row pushes its detail URL.
+              if (dirty.current && !selectedSpecies)
+                window.history.replaceState(null, "", browsePath);
+              dirty.current = false;
+              markIndexEntry(mobile);
+              lastClicked.current = row.dataset.species;
+              record();
+            }
+          }}
+        >
+          {visible.length ? (
+            <>
+              <ol>
+                {visible.slice(0, limit).map((pokemon, index) => (
+                  <li key={pokemon.id}>
+                    <PokemonListRow
+                      pokemon={pokemon}
+                      priority={index < 4}
+                      selected={pokemon.name === selectedSpecies}
+                      detailHref={getDetailHref(pokemon.name, browsePath)}
+                    />
+                  </li>
+                ))}
+              </ol>
+              {visible.length > limit && (
+                <button
+                  className="fg-button catalog-more"
+                  type="button"
+                  onClick={() => setLimit((current) => current + 40)}
+                >
+                  Load more <span aria-hidden>↓</span>
+                </button>
+              )}
+              <p className="catalog-footer">
+                National order /{" "}
+                {scope === "all" ? "All generations" : catalog.generation.label}
+              </p>
+            </>
+          ) : (
+            <div className="empty-catalog">
+              <GuideEmblem size={40} />
+              <h2>No species match.</h2>
+              <p>
+                Try a name or national number, or clear the current type
+                filters.
+              </p>
+              <button
+                className="fg-button primary"
+                type="button"
+                onClick={clear}
+              >
+                <Search size={16} aria-hidden />
+                Clear search and filters
+              </button>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </section>
-    </main>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import {
+  getAbilityResourceByName,
   getAllSpeciesResources,
   getEvolutionResourceById,
   getGenerationResourceById,
@@ -6,7 +7,12 @@ import {
   getPokemonResourceByName,
   getSpeciesResourceByName,
 } from "@/lib/pokeapi/client";
-import type { ValidatedEvolutionChain, ValidatedPokemon, ValidatedSpecies } from "@/lib/pokeapi/schemas";
+import type {
+  ValidatedEvolutionChain,
+  ValidatedPokemon,
+  ValidatedSpecies,
+} from "@/lib/pokeapi/schemas";
+import { notFound } from "next/navigation";
 import { getGenerationSummary } from "@/lib/pokedex/generations";
 import {
   formatDisplayName,
@@ -44,7 +50,11 @@ function getArtworkUrl(pokemon: ValidatedPokemon): string | null {
 }
 
 function getShinyArtworkUrl(pokemon: ValidatedPokemon): string | null {
-  return pokemon.sprites.other?.["official-artwork"].front_shiny ?? pokemon.sprites.other?.home.front_shiny ?? pokemon.sprites.front_shiny;
+  return (
+    pokemon.sprites.other?.["official-artwork"].front_shiny ??
+    pokemon.sprites.other?.home.front_shiny ??
+    pokemon.sprites.front_shiny
+  );
 }
 
 function getTypeNames(pokemon: ValidatedPokemon): PokemonTypeName[] {
@@ -83,10 +93,14 @@ async function mapInBatches<T, R>(
 function sortResourcesById(resources: readonly Resource[]): Resource[] {
   return resources
     .slice()
-    .sort((first, second) => getResourceId(first.url) - getResourceId(second.url));
+    .sort(
+      (first, second) => getResourceId(first.url) - getResourceId(second.url),
+    );
 }
 
-export async function getPokemonCatalog(scope: CatalogScope): Promise<PokemonCatalog> {
+export async function getPokemonCatalog(
+  scope: CatalogScope,
+): Promise<PokemonCatalog> {
   const generation = getGenerationSummary(scope);
   const speciesResources =
     scope === "all"
@@ -96,7 +110,12 @@ export async function getPokemonCatalog(scope: CatalogScope): Promise<PokemonCat
   const pokemon = await mapInBatches(orderedSpecies, async (resource) => {
     const resourceId = getResourceId(resource.url);
     const pokemonResource = await getPokemonResourceById(resourceId);
-    return getCatalogPokemon(pokemonResource);
+    return {
+      ...getCatalogPokemon(pokemonResource),
+      id: resourceId,
+      name: resource.name,
+      displayName: formatDisplayName(resource.name),
+    };
   });
 
   return {
@@ -108,10 +127,13 @@ export async function getPokemonCatalog(scope: CatalogScope): Promise<PokemonCat
 function getEnglishText<T extends { language: Resource }>(
   entries: readonly T[],
 ): T | null {
-  return entries.find((entry) => entry.language.name === "en") ?? entries[0] ?? null;
+  return entries.find((entry) => entry.language.name === "en") ?? null;
 }
 
-function getVariantSummary(pokemon: ValidatedPokemon, speciesName: string): PokemonVariantSummary {
+function getVariantSummary(
+  pokemon: ValidatedPokemon,
+  speciesName: string,
+): PokemonVariantSummary {
   return {
     artworkUrl: getArtworkUrl(pokemon),
     displayName: pokemon.is_default
@@ -145,7 +167,9 @@ function getGenus(species: ValidatedSpecies): string | null {
   return entry?.genus ?? null;
 }
 
-function getEvolutionCondition(details: ChainLink["evolution_details"]): string | null {
+function getEvolutionCondition(
+  details: ChainLink["evolution_details"],
+): string | null {
   const conditions = details.map((detail) => {
     const labels: string[] = [];
 
@@ -192,14 +216,21 @@ function getEvolutionCondition(details: ChainLink["evolution_details"]): string 
     return formatDisplayName(detail.trigger.name);
   });
 
-  return conditions.length > 0 ? conditions.join(" / ") : null;
+  return conditions.length > 0
+    ? Array.from(new Set(conditions)).join(" / ")
+    : null;
 }
 
-async function mapEvolutionNode(node: ChainLink, condition: string | null): Promise<EvolutionChainNode> {
+async function mapEvolutionNode(
+  node: ChainLink,
+  condition: string | null,
+): Promise<EvolutionChainNode> {
   const pokemonId = getResourceId(node.species.url);
   const pokemon = await getPokemonResourceById(pokemonId);
   const evolvesTo = await Promise.all(
-    node.evolves_to.map((child) => mapEvolutionNode(child, getEvolutionCondition(child.evolution_details))),
+    node.evolves_to.map((child) =>
+      mapEvolutionNode(child, getEvolutionCondition(child.evolution_details)),
+    ),
   );
 
   return {
@@ -212,29 +243,61 @@ async function mapEvolutionNode(node: ChainLink, condition: string | null): Prom
   };
 }
 
-export async function getPokemonDetail(speciesName: string, variantName: string | undefined): Promise<PokemonDetail> {
+export async function getPokemonDetail(
+  speciesName: string,
+  variantName: string | undefined,
+): Promise<PokemonDetail> {
   const species = await getSpeciesResourceByName(speciesName);
-  const selectedVariantName = variantName && variantName.length > 0 ? variantName : speciesName;
+  const selectedVariantName =
+    variantName ||
+    species.varieties.find((variety) => variety.is_default)?.pokemon.name ||
+    speciesName;
+  if (
+    !species.varieties.some(
+      (variety) => variety.pokemon.name === selectedVariantName,
+    )
+  )
+    notFound();
   const pokemon = await getPokemonResourceByName(selectedVariantName);
-  const variantResources = await mapInBatches(species.varieties, async (variety) => {
-    const variant = await getPokemonResourceByName(variety.pokemon.name);
-    return getVariantSummary(variant, species.name);
-  });
-  const evolutionChainId = getResourceId(species.evolution_chain.url);
-  const evolutionChain = await getEvolutionResourceById(evolutionChainId);
-  const evolution = await mapEvolutionNode(evolutionChain.chain, null);
+  const variantResources = await mapInBatches(
+    species.varieties,
+    async (variety) => {
+      const variant = await getPokemonResourceByName(variety.pokemon.name);
+      return getVariantSummary(variant, species.name);
+    },
+  );
+  const evolution = species.evolution_chain
+    ? await mapEvolutionNode(
+        (
+          await getEvolutionResourceById(
+            getResourceId(species.evolution_chain.url),
+          )
+        ).chain,
+        null,
+      )
+    : null;
+  const abilities = await Promise.all(
+    pokemon.abilities.map(async (ability) => {
+      const resource = await getAbilityResourceByName(ability.ability.name);
+      return {
+        displayName: formatDisplayName(ability.ability.name),
+        isHidden: ability.is_hidden,
+        name: ability.ability.name,
+        description:
+          getEnglishText(resource.effect_entries)?.short_effect || null,
+      };
+    }),
+  );
 
   return {
-    abilities: pokemon.abilities.map((ability) => ({
-      displayName: formatDisplayName(ability.ability.name),
-      isHidden: ability.is_hidden,
-      name: ability.ability.name,
-    })),
+    abilities,
     artworkUrl: getArtworkUrl(pokemon),
     description: getDescription(species),
     displayName: formatDisplayName(species.name),
     evolution,
-    formName: pokemon.is_default ? null : getVariantDisplayName(species.name, pokemon.name),
+    formName: pokemon.is_default
+      ? null
+      : getVariantDisplayName(species.name, pokemon.name),
     genus: getGenus(species),
     historicalTypes: pokemon.past_types.map((pastType) => ({
       generation: formatDisplayName(pastType.generation.name),
@@ -243,7 +306,9 @@ export async function getPokemonDetail(speciesName: string, variantName: string 
         .sort((first, second) => first.slot - second.slot)
         .map((entry) => entry.type.name as PokemonTypeName),
     })),
-    id: pokemon.id,
+    id: species.id,
+    variantId: pokemon.id,
+    introductionGeneration: getResourceId(species.generation.url),
     isLegendary: species.is_legendary,
     isMythical: species.is_mythical,
     moves: getMoveSummary(pokemon),
