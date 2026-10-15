@@ -11,6 +11,7 @@ type Props = {
   onOpen?: () => void;
   hideChevron?: boolean;
   accessibleLabel?: string;
+  description?: string;
   children: (close: () => void) => React.ReactNode;
 };
 
@@ -22,6 +23,7 @@ export function ControlPopover({
   onOpen,
   hideChevron = false,
   accessibleLabel,
+  description,
   children,
 }: Props): React.JSX.Element {
   const [open, setOpen] = useState(false);
@@ -71,6 +73,7 @@ export function ControlPopover({
         className={`fg-button ${active ? "primary" : ""}`}
         aria-expanded={open}
         aria-label={accessibleLabel}
+        aria-describedby={description ? `${id}-description` : undefined}
         aria-controls={id}
         onClick={() => {
           if (open) close();
@@ -84,6 +87,9 @@ export function ControlPopover({
         {label}
         {!hideChevron && <ChevronDown size={15} aria-hidden />}
       </button>
+      {description && (
+        <span className="sr-only" id={`${id}-description`}>{description}</span>
+      )}
       {open && (
         <div className="control-panel plate" id={id} aria-label={title}>
           <div className="popover-heading">

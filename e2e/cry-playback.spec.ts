@@ -36,8 +36,9 @@ test("the selected cry plays through the browser audio engine", async ({
           .length,
     ),
   ).toBe(0);
-  await page.getByRole("button", { name: "Sound on", exact: true }).click();
-  await page.getByRole("button", { name: "Sound off", exact: true }).click();
+  await page.getByRole("button", { name: "Sound settings", exact: true }).click();
+  await page.getByRole("button", { name: "Mute sound", exact: true }).click();
+  await page.getByRole("button", { name: "Enable sound", exact: true }).click();
   await expect
     .poll(
       () =>

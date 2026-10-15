@@ -1,6 +1,6 @@
 # Sound, image style and type colors
 
-Status: implemented locally, 2026-10-15. The user approved the revised proposal and requested circular type icons. Existing loading and navigation fixes remain part of this working tree. These changes have not been pushed or deployed.
+Status: the approved preference design and loading fixes were committed and pushed on 2026-10-15. The subsequent volume setting is implemented and verified; deployment of that addition is not verified.
 
 ## Implementation plan
 
@@ -45,7 +45,13 @@ Copied links to the previous design screens and invalid cross-page menu links we
 
 ## Sound
 
-Place Sound immediately beside Theme. Use a labeled control on desktop and a 44px icon target on narrow phones. The default is enabled; persist the choice independently of theme. A deliberate species selection plays one cry after its detail is ready. Stop the previous cry on selection or mute. Changing theme, image style or shiny appearance must not replay it. Initial page entry remains quiet until user interaction.
+Place Sound immediately beside Theme. Use a labeled control on desktop and a 44px icon target on narrow phones. The control opens a compact menu with mute and a native 0–100% cry-volume slider. Sound defaults on at 45% volume, matching the original playback level. Persist volume separately from mute and theme, including a saved zero. Adjust current playback immediately without restarting it; changing volume while muted keeps sound off. A deliberate species selection plays one cry after its detail is ready. Stop the previous cry on selection or mute. Changing theme, image style or shiny appearance must not replay it. Initial page entry remains quiet until user interaction.
+
+Volume follow-up:
+
+- [x] Add saved volume to the shared audio controller, including bounded storage values and live playback updates.
+- [x] Reuse the top-bar popover pattern for mute, a labeled 44px-height slider and percentage readout, with keyboard support and narrow-screen containment.
+- [x] Verify volume changes, persistence, mute independence and the revised controls in the production browser build; run relevant checks.
 
 The top bar is the only sound-control location. Do not place Sound or Replay cry on the artwork. Enabling Sound with a selected species can play its current cry once, providing a deliberate retry after browser playback rejection. Keep a blocked-playback hint with the top-bar control; the next deliberate species selection or an off/on toggle can retry. A missing cry leaves the global preference intact and shows a noninteractive availability hint. The [official PokéAPI Pokémon schema](https://pokeapi.co/docs/v2#pokemon) exposes `cries.latest` and `cries.legacy`; the future implementation can map a validated optional URL through the existing server adapter.
 
@@ -70,3 +76,5 @@ Native PNG exports of the revised review board and 320px Night catalog were insp
 Twenty-eight unit tests pass. The production Playwright suite passes 20 scenarios, with 12 intentional skips for shared desktop-only audio/pointer/layout checks in phone projects. Coverage includes real browser audio playback, quiet initial entry, cancellation on selection/mute/exit, persistence after refresh, no cry on shiny/theme/style changes, blocked-playback retry, legacy-to-regular-to-artwork fallback, six viewport widths and Night with reduced motion. Loading checks retain the actual server-rendered fallback boundary in an intercepted test response, allowing outer slots to settle while its completion is held. The test-only response blocks hydration; no delay route or production testing hook was added.
 
 The media resource cache keys were versioned because older cached validated records omitted the newly added fields. The nineteen official type symbols are served locally, and the palette covers all 19 supported types with at least 5.17:1 label contrast. Browser screenshots show the new controls, circular symbols, accurate source captions and stable artwork geometry. Physical phones and other browser engines were not tested.
+
+The volume follow-up passes 16 relevant Playwright scenarios in Edge, with 12 intentional skips for checks shared across phone projects. The suite verifies actual slider pointer and keyboard input, updates to current and future audio, no replay on volume adjustment, quiet restoration, saved zero, muted volume changes, storage validation, Escape focus restoration, phone containment and the existing media behavior. Desktop, 320px Light and 390px Night screenshots were visually inspected. The 28 unit tests, ESLint, TypeScript and production build also pass. Volume verification used the local production build.

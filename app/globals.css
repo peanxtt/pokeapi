@@ -1429,11 +1429,46 @@ body,
   align-items: center;
   gap: 12px;
 }
-.sound-toggle {
-  min-width: 112px;
-  width: 112px;
+.sound-control > button {
+  min-width: 132px;
+  width: 132px;
   gap: 8px;
   padding-inline: 8px;
+}
+.sound-control .control-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  width: 280px;
+  left: auto;
+  right: 0;
+  max-height: calc(100dvh - 96px);
+  color: var(--foreground);
+}
+.sound-control .control-panel :focus-visible {
+  outline-color: var(--focus);
+}
+.sound-mute {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.volume-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.volume-heading output {
+  font-family: "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.volume-slider {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0 0 8px;
+  accent-color: var(--brand);
+  cursor: pointer;
 }
 .fg-button {
   justify-content: center;
@@ -1532,16 +1567,20 @@ body,
     width: 24px;
     height: 24px;
   }
-  .sound-toggle,
+  .sound-control > button,
   .theme-popover > button {
     width: 44px;
     min-width: 44px;
     padding: 10px;
   }
   .sound-label,
+  .sound-control > button > svg:last-child,
   .theme-popover > button > span,
   .theme-popover > button > svg:last-child {
     display: none;
+  }
+  .sound-control .control-panel {
+    right: -56px;
   }
   .image-source {
     min-height: 54px;

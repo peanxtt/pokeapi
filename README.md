@@ -2,7 +2,7 @@
 
 An anonymous, generation-first Pokédex powered by [PokéAPI](https://pokeapi.co/). Its modern retro field-guide design pairs periwinkle panels and amber controls with canonical Pokémon data, URL-addressable forms, and persistent desktop/mobile browsing context. It supports System, Light and Night themes, responsive layouts, loading/recovery states and reduced motion.
 
-Sound defaults on and plays a cry after a deliberate species selection; its top-bar toggle persists across visits. Artwork/Pixels applies across the guide, using static Black/White sprites with labeled regular-sprite/artwork fallbacks. All 19 supported types have distinct colors and circular symbols in both themes. The small type assets come from the [official PokéAPI sprite repository](https://github.com/PokeAPI/sprites/tree/master/sprites/types/generation-ix/scarlet-violet/small).
+Sound defaults on and plays a cry after a deliberate species selection. Its top-bar menu offers mute and a 0–100% volume slider (45% by default); both settings persist across visits. Artwork/Pixels applies across the guide, using static Black/White sprites with labeled regular-sprite/artwork fallbacks. All 19 supported types have distinct colors and circular symbols in both themes. The small type assets come from the [official PokéAPI sprite repository](https://github.com/PokeAPI/sprites/tree/master/sprites/types/generation-ix/scarlet-violet/small).
 
 ## Stack
 

@@ -1,11 +1,24 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function toggleSound(page: Page) {
+  const settings = page.getByRole("button", {
+    name: "Sound settings",
+    exact: true,
+  });
+  if ((await settings.getAttribute("aria-expanded")) !== "true")
+    await settings.click();
+  await page.getByRole("button", { name: /^(Mute sound|Enable sound)$/ }).click();
+  await page.getByRole("button", { name: "Close sound", exact: true }).click();
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    const events: { kind: string; src: string }[] = [];
-    Object.assign(window, { cryEvents: events, rejectCry: false });
+    const events: { kind: string; src: string; volume: number }[] = [];
+    const audio: HTMLMediaElement[] = [];
+    Object.assign(window, { cryEvents: events, cryAudio: audio, rejectCry: false });
     HTMLMediaElement.prototype.play = function () {
-      events.push({ kind: "play", src: this.src });
+      events.push({ kind: "play", src: this.src, volume: this.volume });
+      audio.push(this);
       if ((window as unknown as { rejectCry: boolean }).rejectCry)
         return Promise.reject(
           new DOMException("Blocked for test", "NotAllowedError"),
@@ -13,10 +26,114 @@ test.beforeEach(async ({ page }) => {
       return Promise.resolve();
     };
     HTMLMediaElement.prototype.pause = function () {
-      events.push({ kind: "pause", src: this.src });
+      events.push({ kind: "pause", src: this.src, volume: this.volume });
     };
     HTMLMediaElement.prototype.load = function () {};
   });
+});
+
+test("volume adjusts current and future cries, stays independent of mute, and persists", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/?generation=1");
+  const settings = page.getByRole("button", {
+    name: "Sound settings",
+    exact: true,
+  });
+  const slider = page.getByRole("slider", { name: "Cry volume", exact: true });
+  const audioState = () =>
+    page.evaluate(() => {
+      const { cryEvents, cryAudio } = window as unknown as {
+        cryEvents: { kind: string; volume: number }[];
+        cryAudio: HTMLMediaElement[];
+      };
+      return {
+        plays: cryEvents.filter((event) => event.kind === "play"),
+        currentVolume: cryAudio.at(-1)?.volume,
+      };
+    });
+  await settings.click();
+  await expect(slider).toHaveValue("45");
+  const panel = page.locator(".sound-control .control-panel");
+  await expect(panel).toHaveCSS("opacity", "1");
+  const box = (await panel.boundingBox())!;
+  const width = page.viewportSize()!.width;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(width);
+  expect((await slider.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await page.screenshot({ path: testInfo.outputPath("sound-volume.png") });
+
+  // Exercise the actual pointer and native range keyboard behavior.
+  const track = (await slider.boundingBox())!;
+  await slider.click({ position: { x: track.width / 4, y: track.height / 2 } });
+  const chosen = Number(await slider.inputValue());
+  expect(chosen).toBeGreaterThan(15);
+  expect(chosen).toBeLessThan(35);
+  expect((await audioState()).plays).toHaveLength(0);
+  await slider.press("Escape");
+  await expect(settings).toBeFocused();
+  await page.locator('[data-species="bulbasaur"]').click();
+  await expect.poll(async () => (await audioState()).plays.length).toBe(1);
+  expect((await audioState()).plays[0].volume).toBe(chosen / 100);
+
+  await settings.click();
+  await slider.press("Home");
+  await expect(slider).toHaveValue("0");
+  await expect.poll(async () => (await audioState()).currentVolume).toBe(0);
+  await slider.press("End");
+  await slider.press("ArrowLeft");
+  await expect(slider).toHaveValue("99");
+  expect((await audioState()).currentVolume).toBe(0.99);
+  expect((await audioState()).plays).toHaveLength(1);
+
+  await page.getByRole("button", { name: "Mute sound", exact: true }).click();
+  await slider.press("End");
+  await expect(slider).toHaveAttribute("aria-valuetext", "100%, sound is off");
+  expect((await audioState()).plays).toHaveLength(1);
+  await page.reload();
+  await expect(settings).toHaveAccessibleDescription(/Sound off. Volume 100%/);
+  expect((await audioState()).plays).toHaveLength(0);
+  await settings.click();
+  await expect(slider).toHaveValue("100");
+  await page.getByRole("button", { name: "Enable sound", exact: true }).click();
+  await expect.poll(async () => (await audioState()).plays.length).toBe(1);
+  expect((await audioState()).plays[0].volume).toBe(1);
+  await page.getByRole("button", { name: "Close sound", exact: true }).click();
+  await page.getByRole("link", { name: /Next: Ivysaur/ }).click();
+  await expect.poll(async () => (await audioState()).plays.length).toBe(2);
+  expect((await audioState()).plays[1].volume).toBe(1);
+  await settings.click();
+  await slider.press("Home");
+  await page.reload();
+  await settings.click();
+  await expect(slider).toHaveValue("0");
+  expect((await audioState()).plays).toHaveLength(0);
+});
+
+test("invalid stored volume defaults safely and out-of-range volume is bounded", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "Storage validation is shared at all widths.",
+  );
+  await page.goto("/?generation=1");
+  const cases: [string, string][] = [
+    ["broken", "45"],
+    ["200", "100"],
+    ["-10", "0"],
+  ];
+  for (const [stored, expected] of cases) {
+    await page.evaluate(
+      (value) => localStorage.setItem("pokedex-volume", value),
+      stored,
+    );
+    await page.reload();
+    await page.getByRole("button", { name: "Sound settings", exact: true }).click();
+    await expect(
+      page.getByRole("slider", { name: "Cry volume", exact: true }),
+    ).toHaveValue(expected);
+  }
 });
 
 test("sound and image preferences follow deliberate selection and persist", async ({
@@ -30,8 +147,8 @@ test("sound and image preferences follow deliberate selection and persist", asyn
     );
   await page.goto("/?generation=1");
   await expect(
-    page.getByRole("button", { name: "Sound on", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByRole("button", { name: "Sound settings", exact: true }),
+  ).toHaveAccessibleDescription(/Sound on/);
   expect(await plays()).toHaveLength(0);
   await page.locator('[data-species="bulbasaur"]').click();
   const detail = page.getByRole("article", { name: "Bulbasaur", exact: true });
@@ -56,10 +173,10 @@ test("sound and image preferences follow deliberate selection and persist", asyn
   await page.getByRole("button", { name: "Color theme", exact: true }).click();
   await page.getByRole("radio", { name: "Night", exact: true }).click();
   expect(await plays()).toHaveLength(1);
-  await page.getByRole("button", { name: "Sound on", exact: true }).click();
+  await toggleSound(page);
   await expect(
-    page.getByRole("button", { name: "Sound off", exact: true }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Sound settings", exact: true }),
+  ).toHaveAccessibleDescription(/Sound off/);
   await detail.getByRole("link", { name: /Next: Ivysaur/ }).click();
   await expect(
     page.getByRole("article", { name: "Ivysaur", exact: true }),
@@ -67,15 +184,15 @@ test("sound and image preferences follow deliberate selection and persist", asyn
   expect(await plays()).toHaveLength(1);
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Sound off", exact: true }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Sound settings", exact: true }),
+  ).toHaveAccessibleDescription(/Sound off/);
   await expect(
     page
       .getByRole("article", { name: "Ivysaur", exact: true })
       .getByRole("button", { name: "Pixels", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   expect(await plays()).toHaveLength(0);
-  await page.getByRole("button", { name: "Sound off", exact: true }).click();
+  await toggleSound(page);
   await expect.poll(async () => (await plays()).length).toBe(1);
   await page.screenshot({
     path: testInfo.outputPath("preferences-detail.png"),
@@ -97,8 +214,8 @@ test("a failed legacy sprite falls back honestly and blocked audio can retry fro
   const detail = page.getByRole("article", { name: "Bulbasaur", exact: true });
   await expect(detail).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Sound on", exact: true }),
-  ).toHaveAttribute("title", /Playback blocked/);
+    page.getByRole("button", { name: "Sound settings", exact: true }),
+  ).toHaveAccessibleDescription(/Playback blocked/);
   await detail.getByRole("button", { name: "Pixels", exact: true }).click();
   await expect(detail.locator(".artwork-stage img")).toHaveAttribute(
     "src",
@@ -110,11 +227,11 @@ test("a failed legacy sprite falls back honestly and blocked audio can retry fro
   await page.evaluate(() => {
     Object.assign(window, { rejectCry: false });
   });
-  await page.getByRole("button", { name: "Sound on", exact: true }).click();
-  await page.getByRole("button", { name: "Sound off", exact: true }).click();
+  await toggleSound(page);
+  await toggleSound(page);
   await expect(
-    page.getByRole("button", { name: "Sound on", exact: true }),
-  ).not.toHaveAttribute("title", /Playback blocked/);
+    page.getByRole("button", { name: "Sound settings", exact: true }),
+  ).not.toHaveAccessibleDescription(/Playback blocked/);
   await page.route(
     "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
     (route) => route.fulfill({ status: 404, body: "missing" }),
@@ -145,10 +262,11 @@ test("round type icons and centered controls fit the responsive guide", async ({
       "50%",
     );
     const geometry = await page.evaluate(() => {
-      const b = document.querySelector(".sound-toggle")!,
+      const b = document.querySelector(".sound-control > button")!,
         icon = b.querySelector("svg")!,
-        label = b.querySelector("span")!;
-      const parts = [icon, label]
+        label = b.querySelector("span")!,
+        chevron = b.querySelector("svg:last-child")!;
+      const parts = [icon, label, chevron]
         .filter((e) => e.getBoundingClientRect().width > 0)
         .map((e) => e.getBoundingClientRect());
       const r = b.getBoundingClientRect();
