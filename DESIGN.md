@@ -11,6 +11,12 @@ A spacious modern retro field guide. Cool periwinkle structure, carbon navigatio
 
 The Penpot file PokeAPI contains 55 new boards, 49 native component assets, Light and Night theme presets and named example flows. See [the handoff](docs/design/penpot-handoff.md), [the visual contract](docs/design/retro-field-guide.md) and [the board manifest](docs/design/penpot-manifest.json).
 
+The later sound, pixel artwork and type-color revision is approved and implemented locally. Start at **06 / Sound + pixels + type colors**; its full responsive boards in **02 / Responsive screens** start with **QoL /**. See [the preference design brief](docs/design/sensory-preferences.md).
+
+When duplicating screens for a new design iteration, redirect inherited prototype links to that iteration and verify destinations. Provide a clearly named review entry so users do not land on earlier screens without the new controls.
+
+Center an icon and its label as one measured group inside a control. A centered text frame does not establish that its visible content and adjacent icon are centered together. Verify the group bounds, vertical alignment and spacing in both themes and at narrow widths.
+
 ## Type and geometry
 
 DM Sans carries names, controls and body copy. IBM Plex Mono carries national numbers and numeric data. Use 42/32px display, 24px section headings, 16px body, 14px controls and 12px supplementary labels. Small 10–11px metadata is supplementary only.
@@ -35,6 +41,10 @@ Keep native scroll affordances and independent desktop pane scrolling. Scope cha
 
 Every action needs default, hover, focus, pressed, disabled and loading feedback. Search needs clear, focus and validation feedback. Catalog and detail requests have separate layout-matched loading and retry states. Empty search explains the current scope and offers reset. Missing species provides a return path. Missing artwork preserves data. Single-form, unavailable shiny, missing description, moves, evolution and type history have explicit fallback treatments.
 
+Skeleton rows reuse the loaded row's grid, typography and spacing. Target artwork and text placeholders by their explicit roles; broad descendant selectors such as `:first-child` can accidentally size text bars like artwork. Loading status is announced without adding height above the first row.
+
+Verify real route fallbacks under delayed network responses, including direct entry and client navigation. Compare their measured geometry with the settled view and confirm the served CSS contains the intended change; a standalone loading demonstration does not establish that the route or deployment uses it.
+
 Form and shiny controls remain distinct. Type filters use OR. All generations is the explicit global search mode. Species rows retain national order and do not expose sorting. Moves stay grouped by learn method; do not introduce unsupported move power fields.
 
 ## Motion and accessibility
@@ -46,3 +56,7 @@ Reduced motion removes panel travel and skeleton pulsing, using immediate change
 ## Implementation boundary
 
 The approved design is implemented in the Next.js app: shared chrome and tokens, parallel/intercepted species routes, responsive index/detail compositions, persistent theme selection, motion, loading/recovery states and real reference data. The Penpot file remains the visual review reference. Implementation checks and browser verification are recorded in docs/design/retro-field-guide.md.
+
+Sound appears only beside Theme, defaults on and persists independently. Image style applies across catalog, details and evolution. Static Black/White sprites fall back to regular sprites and artwork with accurate source captions. Type pills use centered icon-and-label groups, circular symbols, 6px side padding and full rounding; standard/compact heights are 28/24px. Keep selected filters at least 44px tall.
+
+Version stable resource-cache keys when adding fields to cached validated models. Changing an imported schema alone may leave older cached objects without the new fields until their expiry; verify new media behavior against a warm cache.

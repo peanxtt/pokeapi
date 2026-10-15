@@ -1,10 +1,12 @@
 "use client";
-import Link, { useLinkStatus } from "next/link";
+import { useLinkStatus } from "next/link";
+import { IntentLink } from "./intent-link";
 import { Check, LoaderCircle } from "lucide-react";
 import { formatDexNumber } from "@/lib/pokedex/format";
 import type { CatalogPokemon } from "@/lib/pokedex/types";
 import { PokemonArtwork } from "@/components/pokedex/pokemon-artwork";
 import { useMobile } from "@/components/pokedex/use-mobile";
+import { TypeBadge } from "./type-badge";
 
 function RowStatus({
   selected,
@@ -35,12 +37,11 @@ export function PokemonListRow({
 }): React.JSX.Element {
   const mobile = useMobile();
   return (
-    <Link
+    <IntentLink
       className={`species-row ${selected ? "selected" : ""}`}
       href={detailHref}
       scroll={false}
       replace={!mobile}
-      prefetch={false}
       aria-current={selected ? "page" : undefined}
       data-species={pokemon.name}
     >
@@ -49,6 +50,7 @@ export function PokemonListRow({
           alt={`${pokemon.displayName} artwork`}
           priority={priority}
           src={pokemon.artworkUrl}
+          pixelSprites={pokemon.pixelSprites}
           retryable={false}
         />
       </div>
@@ -56,14 +58,14 @@ export function PokemonListRow({
         <span className="species-number">{formatDexNumber(pokemon.id)}</span>
         <h3>{pokemon.displayName}</h3>
         <span className="row-types">
-          {pokemon.types
-            .map((type) => type[0].toUpperCase() + type.slice(1))
-            .join(" / ")}
+          {pokemon.types.map((type) => (
+            <TypeBadge key={type} type={type} compact />
+          ))}
         </span>
       </div>
       <span className="row-status">
         <RowStatus selected={selected} />
       </span>
-    </Link>
+    </IntentLink>
   );
 }

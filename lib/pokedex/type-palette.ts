@@ -1,0 +1,22 @@
+// Light background/ink, Night background/ink. Shared with the approved Penpot palette.
+export const TYPE_PALETTE: Record<string, readonly string[]> = {
+  normal: ["#E5E2D7", "#514C3C", "#444239", "#E5DFCA"],
+  fire: ["#F6DFD1", "#863B1F", "#593D30", "#FFD1B6"],
+  water: ["#D6E7F5", "#25577D", "#2D425E", "#B6DBFF"],
+  electric: ["#F2E8BA", "#665116", "#51482B", "#F6E28B"],
+  grass: ["#DDEBCF", "#365C29", "#334C31", "#C2E8A5"],
+  ice: ["#D3ECEB", "#285C60", "#2E4D53", "#B6EBEF"],
+  fighting: ["#F0D9D5", "#7D3730", "#583632", "#F1BDB4"],
+  poison: ["#E7D8EF", "#663C78", "#4B365B", "#E7C5F7"],
+  ground: ["#EEE0C8", "#71512B", "#50432F", "#EAD2A2"],
+  flying: ["#E1DCF3", "#554378", "#403D5C", "#D4CAF5"],
+  psychic: ["#F4D9E5", "#853655", "#583448", "#F7BEDA"],
+  bug: ["#E3E8C5", "#505F27", "#414A2C", "#D8E7A0"],
+  rock: ["#E7E0C6", "#675A27", "#4B452D", "#E4D9A3"],
+  ghost: ["#DDD9EC", "#51426F", "#3C3653", "#CDC1EC"],
+  dragon: ["#DED9F6", "#4E3B8A", "#3C345E", "#D0C0FF"],
+  dark: ["#DFDBD8", "#51463D", "#423B36", "#E2D5CB"],
+  steel: ["#DCE4E8", "#44545F", "#374650", "#D0E1EC"],
+  fairy: ["#F1DFEC", "#7A426A", "#533C50", "#F3CCE7"],
+  stellar: ["#D6ECE8", "#2A5C58", "#2E4D4A", "#BFECE5"],
+};

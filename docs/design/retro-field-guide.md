@@ -8,23 +8,23 @@ Use the supplied historical visual reference for palette, physical panel depth, 
 
 ## Palette
 
-| Role | Hex | Application |
-| --- | --- | --- |
-| Chassis | #7A8ABA | Page background and structural frame |
-| Sky | #9FBEE7 | Secondary scope strip |
-| Lavender | #ACACE7 | Species artwork plate |
-| Ice | #C0D5E6 | Selected rows, field edges, secondary controls |
-| Raised plate | #8BA1D4 | Utility panels |
-| Indigo edge | #3D4F97 | Crisp bevel shadow and secondary text on light surfaces |
-| Muted indigo | #60619C | Inactive metadata on light surfaces |
-| Platinum | #DEDEDE | Index inset |
-| Tinted white | #F7F8FC | Content and input surfaces |
-| Carbon | #21242E | Main navigation and primary text |
-| Hairline | #5A5F8C | Panel boundaries |
-| Amber | #ECAB37 | Active region and primary utility control |
-| Signal orange | #F68D1F | Small directional and selection accents |
-| Red | #E60012 | Errors; reserve for exceptional states |
-| Teal | #206479 | Stat bars and small analytical accents |
+| Role          | Hex     | Application                                             |
+| ------------- | ------- | ------------------------------------------------------- |
+| Chassis       | #7A8ABA | Page background and structural frame                    |
+| Sky           | #9FBEE7 | Secondary scope strip                                   |
+| Lavender      | #ACACE7 | Species artwork plate                                   |
+| Ice           | #C0D5E6 | Selected rows, field edges, secondary controls          |
+| Raised plate  | #8BA1D4 | Utility panels                                          |
+| Indigo edge   | #3D4F97 | Crisp bevel shadow and secondary text on light surfaces |
+| Muted indigo  | #60619C | Inactive metadata on light surfaces                     |
+| Platinum      | #DEDEDE | Index inset                                             |
+| Tinted white  | #F7F8FC | Content and input surfaces                              |
+| Carbon        | #21242E | Main navigation and primary text                        |
+| Hairline      | #5A5F8C | Panel boundaries                                        |
+| Amber         | #ECAB37 | Active region and primary utility control               |
+| Signal orange | #F68D1F | Small directional and selection accents                 |
+| Red           | #E60012 | Errors; reserve for exceptional states                  |
+| Teal          | #206479 | Stat bars and small analytical accents                  |
 
 Keep warm colors scarce. Use dark text on amber and orange; light text on these colors does not provide dependable contrast. Type labels always include readable names so color is supplementary.
 
@@ -95,3 +95,56 @@ Affected areas: app layouts/routes/styles, Pokédex components, URL/model mappin
 - Fixed a debounce/navigation race by flushing pending index context before a row opens. Both full-page and intercepted views now use the parallel detail slot. A whole-workspace error hides its subordinate detail state, and query changes reset stale error boundaries.
 
 Limits: browser QA used the Windows in-app browser rather than physical phones. Touch-edge swipe and OS reduced-motion changes were reviewed in code; they were not exercised on a physical device. Retry-state presentation was exercised with invalid scope data, not a forced upstream outage. GitHub artwork occasionally timed out; the implemented artwork fallback retained all reference content. This is a local implementation and has not been deployed.
+
+### Catalog loading and skeleton corrections
+
+Outcome: return the first 40 species resources promptly, append another batch near the end of the list, and align placeholders with the real row and header geometry. The full lightweight species index supports scoped search, accurate counts, selection and Next navigation. Type membership is fetched through the existing server adapter before pagination, so filtering remains correct beyond the loaded rows. Browser code requests app-owned pages through a validated route handler; it does not call PokéAPI directly.
+
+- [x] Reproduce eager resource fetching and skeleton overflow with focused checks.
+- [x] Add server pagination and full-scope name/type filtering, with request bounds and cached type resources.
+- [x] Append pages on scroll with a Load more fallback, cancellation, retry and browse restoration.
+- [x] Share actual row geometry with skeletons and match the catalog controls.
+- [x] Verify page boundaries, filtered counts, stale requests, browser navigation, layout and production checks.
+
+Risks: filtering only loaded rows would hide valid results; late responses must not append to a different query; restoring a deep browse position needs its prior batches; loading indicators must not push the rows down. Tests will count resource requests rather than rely only on a warm API cache.
+
+Verification: 22 Vitest checks, ESLint, TypeScript and the production build pass. Resource-count tests reproduce the former 120-resource eager load and prove the corrected first page fetches only 40. Coverage includes offset boundaries, final partial pages, searching outside the first page, OR type membership, counts without Pokémon resource requests, malformed API requests, cancellation, duplicate/stale page rejection and Next navigation through the lightweight index.
+
+Browser checks confirm All generations begins with 40 of 1,025 rows and appends batches near the list end. Global search finds Terapagos; Grass OR Fire counts 207 matches. Rapid query changes, including trailing whitespace during a pending search, finish with only the current results. A temporary single-request 503 preserved 80 loaded rows; Try again appended the next page. The fault and loading inspection route were removed before the production build.
+
+At 1440 and 390px, skeleton and loaded rows share the same measured artwork/text positions and 95.994px row height; the malformed first text placeholder changed from 80px to 16.491px. The 320px skeleton has no horizontal overflow or text escaping its row. Mobile scrolling appends 80 rows; opening Zubat, refreshing the detail, and returning rebuilds the prefix, focuses Zubat and restores the recorded 4478.182px browse position. Screenshots are saved as `qol-skeleton-{desktop,mobile,320}.jpg` in the session visualization directory.
+
+The local production All response contains 40 rows and 241,051 bytes versus the previous 516,937 bytes. One local response measured 526ms versus the earlier 4205ms; these are illustrative cached local measurements, not a cold-network benchmark or deployment guarantee. Production navigation also verified that searching for Terapagos dismisses an excluded Bulbasaur detail and reset returns to the national list. The clean production loading screenshot is `qol-production-loading.jpg`. Browser QA used the Windows in-app browser with viewport overrides, not physical phones. No dependency was added.
+
+### Real-route verification and sensory preferences, 2026-10-15
+
+Outcome: reproduce the deployed loading transitions with Playwright, reduce unnecessary work on species selection, and design sound, artwork style and type colors in Penpot before implementing those new preferences. Existing uncommitted catalog changes remain part of this working tree.
+
+- [x] Inspect the deployed route markup and CSS, then compare with a fresh local production build.
+- [x] Measure the detail request path, remove serial dependencies and unnecessary catalog work, and warm only intentional navigation targets.
+- [x] Verify real catalog/detail loading layouts against settled geometry on desktop and phone widths, including slow requests and reduced motion.
+- [x] Create Penpot screens for sound on/off, artwork/pixel style, 18 classic types plus Stellar, responsive layouts, both themes, fallbacks and motion rules.
+- [x] Export and inspect the new design boards, record handoff references, and present the QoL design for review before feature implementation.
+- [x] Run regression tests, lint, TypeScript and a production build; review and record the final diff.
+
+Design assumptions: keep the approved field-guide composition. Sound defaults on and persists beside Theme; a species selection plays one cry when the new detail is ready, stops the previous cry and offers replay when browser autoplay is unavailable. Artwork style uses Black/White pixel sprites where present and the API's regular sprite for newer species, with an explicit artwork fallback. Style and shiny remain distinct. Type colors are semantic labels in both themes, including row text and detail badges, and never the only identifier. These QoL features are design-only until the design review.
+
+Risks: the currently deployed assets still include the old `.skeleton:first-child` rule. Local verification alone cannot establish a deployed correction. Intent prefetch must not eagerly request every species. Audio must handle browser playback restrictions and missing files. A Black/White sprite cannot exist for species introduced later; the design must expose its fallback accurately.
+
+Verification: a fresh local production build uses the role-specific skeleton styles while the deployed CSS still contains the legacy first-child rule. Real Playwright route tests found and corrected a 21px phone catalog shift caused by hydration-dependent intro copy and a 34px narrow detail shift caused by a wrapping metadata/Next header. CSS now selects responsive copy before hydration, and detail placeholders share the loaded header's geometry. Catalog artwork, identity and row dimensions and direct-detail artwork/form offsets match the settled view within 1px at 1440, 390 and 320px. Night with reduced motion also passes.
+
+The detail adapter reuses the selected Pokémon resource by canonical resource ID and runs independent variant, evolution and ability work concurrently. Shared detail context loads the lightweight catalog index rather than fetching 40 Pokémon resources again. Pointer/focus intent enables route prefetch without fetching every visible row. During a blocked subsequent navigation, Playwright confirms the current detail remains visible. A stable detail slot replaces the route-level exit wrapper that retained duplicate panels; content entry and artwork transitions remain.
+
+Twenty-four Vitest tests pass, including regressions for concurrent detail work, resource reuse and lightweight navigation context. Nine Playwright scenarios pass across the four configured viewport/theme projects; the desktop pointer case is intentionally skipped in the three phone projects. The production build, TypeScript, ESLint and final diff whitespace check pass. Browser checks use Windows Edge in headless mode with slow-network emulation, not physical phones.
+
+The user explicitly chose **Review the designs first**. The three new preferences remain design-only. See [the sensory preference brief](sensory-preferences.md) and [the native Penpot manifest](penpot-qol-manifest.json). The new review page is selected; its 18 responsive main screens, two state examples, eight native control assets, 76 type tokens and representative flows were verified. A named version preserves the reviewed file. Inherited prototype links that led to old screens were corrected after the user reported that the new UI was hard to find. No local changes have been pushed or deployed during this work.
+
+### Approved preference implementation, 2026-10-15
+
+The user subsequently approved implementation with circular type symbols. Sound now appears only beside Theme, defaults on, persists and plays one selected-species cry. Selecting another species, muting or leaving detail stops the previous clip. Initial direct entry, shiny, theme and image-style changes stay quiet. The top-bar control can retry blocked playback; missing audio preserves reference content.
+
+Artwork/Pixels is a persistent guide-wide choice across catalog, detail and evolution. Black/White sprites fall back to regular sprites and artwork, including failed image requests, with accurate source captions. All 19 types have locally served circular symbols and centered rounded pills with distinct Light/Night colors. Loading controls and row/tag geometry match the updated UI. Existing pagination and scoped browsing behavior remain.
+
+Twenty-eight unit tests, TypeScript, ESLint, the production build and the diff whitespace check pass. Playwright passes 20 scenarios; 12 intentional phone-project skips avoid repeating shared desktop audio/pointer/six-width checks. The suite covers real audio-engine playback, cancellation, persistence, blocked-playback retry, sprite fallbacks, 1920/1440/1024/768/390/320px layouts, Night/reduced motion and real route fallback geometry. Fallback tests hold their actual SSR completion boundary in the browser response, avoiding unreliable sampling of a brief warm-cache loading frame. The resource-cache keys were versioned after testing exposed old validated objects without the new media fields.
+
+Fresh browser images are saved in the session visualization directory as preferences-implemented-desktop.png, preferences-implemented-320.png, preferences-implemented-night.png and preferences-live-preview.png. The local production preview runs on port 3004. The final circular-frame sync in Penpot is unverified because its MCP plugin suspended; the website's circular clipping and control alignment are verified. No commit, push or deployment was performed.

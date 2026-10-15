@@ -16,14 +16,19 @@ export default async function Home({
 }: HomePageProps): Promise<React.JSX.Element> {
   const query = await searchParams;
   const scope = parseCatalogScope(getQueryValue(query.generation));
-  const catalog = await getPokemonCatalog(scope);
+  const initialQuery = getQueryValue(query.q) ?? "";
+  const initialTypes = parseTypeFilters(getQueryValue(query.types));
+  const catalog = await getPokemonCatalog(scope, {
+    query: initialQuery,
+    types: initialTypes,
+  });
 
   return (
     <PokedexExplorer
       key={scope}
       catalog={catalog}
-      initialQuery={getQueryValue(query.q) ?? ""}
-      initialTypes={parseTypeFilters(getQueryValue(query.types))}
+      initialQuery={initialQuery}
+      initialTypes={initialTypes}
       scope={scope}
     />
   );

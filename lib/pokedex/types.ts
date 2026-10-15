@@ -49,6 +49,7 @@ export type GenerationSummary = {
 };
 
 export type CatalogPokemon = {
+  pixelSprites?: PixelSprites;
   id: number;
   name: string;
   displayName: string;
@@ -57,9 +58,27 @@ export type CatalogPokemon = {
   types: PokemonTypeName[];
 };
 
-export type PokemonCatalog = {
+export const CATALOG_PAGE_SIZE = 40;
+
+export type CatalogSpecies = Pick<
+  CatalogPokemon,
+  "id" | "name" | "displayName"
+>;
+export type CatalogOptions = {
+  query?: string;
+  types?: PokemonTypeName[];
+  offset?: number;
+};
+export type CatalogIndex = {
+  context: string;
   generation: GenerationSummary;
+  species: CatalogSpecies[];
+  totalSpecies: number;
+};
+export type PokemonCatalog = CatalogIndex & {
   pokemon: CatalogPokemon[];
+  offset: number;
+  nextOffset: number | null;
 };
 
 export type PokemonStatSummary = {
@@ -82,6 +101,7 @@ export type PokemonMoveSummary = {
 };
 
 export type PokemonVariantSummary = {
+  pixelSprites?: PixelSprites;
   id: number;
   name: string;
   displayName: string;
@@ -92,6 +112,7 @@ export type PokemonVariantSummary = {
 };
 
 export type EvolutionChainNode = {
+  pixelSprites?: PixelSprites;
   id: number;
   name: string;
   displayName: string;
@@ -101,6 +122,8 @@ export type EvolutionChainNode = {
 };
 
 export type PokemonDetail = {
+  pixelSprites?: PixelSprites;
+  cryUrl?: string | null;
   id: number;
   variantId: number;
   introductionGeneration: number;
@@ -123,3 +146,10 @@ export type PokemonDetail = {
 };
 
 export type CatalogScope = number | "all";
+
+export type PixelSprites = {
+  regular: string | null;
+  regularShiny: string | null;
+  blackWhite: string | null;
+  blackWhiteShiny: string | null;
+};

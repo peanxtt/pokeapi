@@ -19,6 +19,9 @@ import { ExpandableSection } from "@/components/pokedex/expandable-section";
 import { useMobile } from "@/components/pokedex/use-mobile";
 import { useIndexNavigation } from "@/components/pokedex/guide-shell";
 import { useState } from "react";
+import { IntentLink } from "./intent-link";
+import { useGuidePreferences } from "./guide-preferences";
+import { ImageStyleControl } from "./image-style-control";
 
 type Props = {
   detail: PokemonDetail;
@@ -46,24 +49,24 @@ function EvolutionSequence({
   return (
     <div className="evolution-chain">
       <div className="evolution-node">
-        <Link
+        <IntentLink
           href={getDetailHref(node.name, from)}
           replace
           scroll={false}
-          prefetch={false}
           aria-current={node.name === current ? "page" : undefined}
         >
           <div className="evolution-artwork">
             <PokemonArtwork
               alt={node.displayName + " artwork"}
               src={node.artworkUrl}
+              pixelSprites={node.pixelSprites}
               priority={false}
               sizes="96px"
               retryable={false}
             />
           </div>
           <strong>{node.displayName}</strong>
-        </Link>
+        </IntentLink>
         <p>{node.evolutionCondition || "Base species"}</p>
       </div>
       {!!node.evolvesTo.length && (
@@ -106,6 +109,12 @@ export function PokemonDetailView({
   next,
 }: Props): React.JSX.Element {
   const [isShiny, setIsShiny] = useState(false);
+  const [imageSource, setImageSource] = useState("");
+  const { activateSpecies } = useGuidePreferences();
+  useEffect(
+    () => activateSpecies(detail.speciesName, detail.cryUrl ?? null),
+    [activateSpecies, detail.speciesName, detail.cryUrl],
+  );
   const mobile = useMobile();
   const { enteredFromIndex } = useIndexNavigation();
   const reduced = useReducedMotion();
@@ -205,16 +214,15 @@ export function PokemonDetailView({
             {formatDexNumber(detail.id)} / {generation.label}
           </p>
           {next && from === serverFrom && (
-            <Link
+            <IntentLink
               className="fg-button"
               href={next.href}
               replace
               scroll={false}
-              prefetch={false}
             >
               Next: {next.label}
               <span aria-hidden>→</span>
-            </Link>
+            </IntentLink>
           )}
         </div>
         <div className="species-hero">
@@ -233,6 +241,9 @@ export function PokemonDetailView({
                     detail.displayName + (shiny ? " shiny" : "") + " artwork"
                   }
                   src={artwork}
+                  pixelSprites={detail.pixelSprites}
+                  shiny={shiny}
+                  onSourceChange={setImageSource}
                   priority
                   sizes="(max-width: 699px) 80vw, 310px"
                 />
@@ -269,6 +280,7 @@ export function PokemonDetailView({
             </p>
           </div>
         </div>
+        <ImageStyleControl source={imageSource} />
         <section className="form-appearance" aria-label="Form and appearance">
           <label
             className="uppercase-label"
@@ -333,7 +345,7 @@ export function PokemonDetailView({
           <p className="appearance-note">
             {shiny
               ? "Shiny appearance, same species."
-              : "Changes artwork only."}
+              : "Changes appearance only."}
           </p>
         </section>
         <div className="detail-data">

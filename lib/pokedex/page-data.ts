@@ -1,11 +1,10 @@
-import { getPokemonCatalog, getPokemonDetail } from "@/lib/pokedex/data";
+import { getCatalogIndex, getPokemonDetail } from "@/lib/pokedex/data";
 import { cache } from "react";
 import { parseCatalogScope } from "@/lib/pokedex/generations";
 import {
   getBrowsePath,
   getDetailHref,
   getQueryValue,
-  matchesQuery,
   parseReturnPath,
   parseTypeFilters,
   type QueryValue,
@@ -40,21 +39,19 @@ const loadSpeciesContext = cache(
       : getBrowsePath(detail.introductionGeneration);
     const browse = new URL(from, "https://pokedex.invalid").searchParams;
     const scope = parseCatalogScope(browse.get("generation") || undefined);
-    const catalog = await getPokemonCatalog(scope);
     const initialQuery = browse.get("q") || "";
     const initialTypes = parseTypeFilters(browse.get("types") || undefined);
-    const visible = catalog.pokemon.filter(
-      (p) =>
-        matchesQuery(p.name, p.id, initialQuery) &&
-        (!initialTypes.length || initialTypes.some((t) => p.types.includes(t))),
-    );
+    const index = await getCatalogIndex(scope, {
+      query: initialQuery,
+      types: initialTypes,
+    });
+    const visible = index.species;
     const selected = visible.findIndex((p) => p.name === detail.speciesName);
     const next = selected >= 0 ? visible[selected + 1] : undefined;
     return {
       detail,
       from,
       scope,
-      catalog,
       initialQuery,
       initialTypes,
       next: next

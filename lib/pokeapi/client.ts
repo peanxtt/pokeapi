@@ -17,6 +17,7 @@ import {
   pokemonListSchema,
   pokemonSchema,
   speciesSchema,
+  typeSchema,
   type ValidatedEvolutionChain,
   type ValidatedGeneration,
   type ValidatedPokemon,
@@ -102,7 +103,7 @@ const getPokemonResource = unstable_cache(
     );
     return pokemonSchema.parse(response);
   },
-  ["pokedex-pokemon"],
+  ["pokedex-pokemon-media-v2"],
   { revalidate: CACHE_SECONDS },
 );
 
@@ -113,7 +114,7 @@ const getPokemonByNameResource = unstable_cache(
     );
     return pokemonSchema.parse(response);
   },
-  ["pokedex-pokemon-by-name"],
+  ["pokedex-pokemon-by-name-media-v2"],
   { revalidate: CACHE_SECONDS },
 );
 
@@ -159,6 +160,15 @@ const getSpeciesPageResource = unstable_cache(
     return pokemonListSchema.parse(response);
   },
   ["pokedex-species-list"],
+  { revalidate: CACHE_SECONDS },
+);
+
+export const getTypeResourceByName = unstable_cache(
+  async (name: string) =>
+    typeSchema.parse(
+      await withRetries(`type ${name}`, () => api.pokemon.getTypeByName(name)),
+    ),
+  ["pokedex-type-membership"],
   { revalidate: CACHE_SECONDS },
 );
 

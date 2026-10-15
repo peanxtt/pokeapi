@@ -50,6 +50,7 @@ export function ThemeToggle(): React.JSX.Element {
   return (
     <ControlPopover
       title="Appearance"
+      accessibleLabel="Color theme"
       className="theme-popover"
       label={
         <>

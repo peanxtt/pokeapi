@@ -4,8 +4,8 @@ import {
   getEvolutionResourceById,
   getGenerationResourceById,
   getPokemonResourceById,
-  getPokemonResourceByName,
   getSpeciesResourceByName,
+  getTypeResourceByName,
 } from "@/lib/pokeapi/client";
 import type {
   ValidatedEvolutionChain,
@@ -14,6 +14,8 @@ import type {
 } from "@/lib/pokeapi/schemas";
 import { notFound } from "next/navigation";
 import { getGenerationSummary } from "@/lib/pokedex/generations";
+import { getBrowsePath, matchesQuery } from "@/lib/pokedex/query";
+import { CATALOG_PAGE_SIZE } from "@/lib/pokedex/types";
 import {
   formatDisplayName,
   formatStatLabel,
@@ -24,6 +26,8 @@ import {
 import type {
   CatalogPokemon,
   CatalogScope,
+  CatalogOptions,
+  CatalogIndex,
   EvolutionChainNode,
   PokemonCatalog,
   PokemonDetail,
@@ -40,6 +44,16 @@ type Resource = {
 type ChainLink = ValidatedEvolutionChain["chain"];
 
 const CATALOG_BATCH_SIZE = 40;
+
+function getPixelSprites(pokemon: ValidatedPokemon) {
+  const legacy = pokemon.sprites.versions?.["generation-v"]?.["black-white"];
+  return {
+    regular: pokemon.sprites.front_default,
+    regularShiny: pokemon.sprites.front_shiny,
+    blackWhite: legacy?.front_default ?? null,
+    blackWhiteShiny: legacy?.front_shiny ?? null,
+  };
+}
 
 function getArtworkUrl(pokemon: ValidatedPokemon): string | null {
   return (
@@ -66,6 +80,7 @@ function getTypeNames(pokemon: ValidatedPokemon): PokemonTypeName[] {
 
 function getCatalogPokemon(pokemon: ValidatedPokemon): CatalogPokemon {
   return {
+    pixelSprites: getPixelSprites(pokemon),
     artworkUrl: getArtworkUrl(pokemon),
     displayName: formatDisplayName(pokemon.name),
     id: pokemon.id,
@@ -98,29 +113,64 @@ function sortResourcesById(resources: readonly Resource[]): Resource[] {
     );
 }
 
-export async function getPokemonCatalog(
+export async function getCatalogIndex(
   scope: CatalogScope,
-): Promise<PokemonCatalog> {
+  { query = "", types = [] }: CatalogOptions = {},
+): Promise<CatalogIndex> {
   const generation = getGenerationSummary(scope);
   const speciesResources =
     scope === "all"
       ? await getAllSpeciesResources()
       : (await getGenerationResourceById(scope)).pokemon_species;
   const orderedSpecies = sortResourcesById(speciesResources);
-  const pokemon = await mapInBatches(orderedSpecies, async (resource) => {
-    const resourceId = getResourceId(resource.url);
-    const pokemonResource = await getPokemonResourceById(resourceId);
-    return {
-      ...getCatalogPokemon(pokemonResource),
-      id: resourceId,
+  let species = orderedSpecies
+    .map((resource) => ({
+      id: getResourceId(resource.url),
       name: resource.name,
       displayName: formatDisplayName(resource.name),
-    };
-  });
-
+    }))
+    .filter((species) => matchesQuery(species.name, species.id, query));
+  if (types.length && species.length) {
+    const memberships = await Promise.all(
+      types.map((type) => getTypeResourceByName(type)),
+    );
+    const matchingIds = new Set(
+      memberships.flatMap((type) =>
+        type.pokemon.map((p) => getResourceId(p.pokemon.url)),
+      ),
+    );
+    species = species.filter((species) => matchingIds.has(species.id));
+  }
   return {
+    context: getBrowsePath(scope, query, types),
     generation,
-    pokemon: pokemon.sort((first, second) => first.id - second.id),
+    species,
+    totalSpecies: orderedSpecies.length,
+  };
+}
+
+export async function getPokemonCatalog(
+  scope: CatalogScope,
+  options: CatalogOptions = {},
+): Promise<PokemonCatalog> {
+  const index = await getCatalogIndex(scope, options);
+  const offset = options.offset ?? 0;
+  const page = index.species.slice(offset, offset + CATALOG_PAGE_SIZE);
+  const pokemon = await Promise.all(
+    page.map(async (species) => {
+      const pokemonResource = await getPokemonResourceById(species.id);
+      return {
+        ...getCatalogPokemon(pokemonResource),
+        ...species,
+      };
+    }),
+  );
+  const end = offset + pokemon.length;
+  return {
+    ...index,
+    pokemon,
+    offset,
+    nextOffset: end < index.species.length ? end : null,
   };
 }
 
@@ -139,6 +189,7 @@ function getVariantSummary(
     displayName: pokemon.is_default
       ? formatDisplayName(speciesName)
       : getVariantDisplayName(speciesName, pokemon.name),
+    pixelSprites: getPixelSprites(pokemon),
     id: pokemon.id,
     isDefault: pokemon.is_default,
     name: pokemon.name,
@@ -226,16 +277,19 @@ async function mapEvolutionNode(
   condition: string | null,
 ): Promise<EvolutionChainNode> {
   const pokemonId = getResourceId(node.species.url);
-  const pokemon = await getPokemonResourceById(pokemonId);
-  const evolvesTo = await Promise.all(
-    node.evolves_to.map((child) =>
-      mapEvolutionNode(child, getEvolutionCondition(child.evolution_details)),
+  const [pokemon, evolvesTo] = await Promise.all([
+    getPokemonResourceById(pokemonId),
+    Promise.all(
+      node.evolves_to.map((child) =>
+        mapEvolutionNode(child, getEvolutionCondition(child.evolution_details)),
+      ),
     ),
-  );
+  ]);
 
   return {
     artworkUrl: getArtworkUrl(pokemon),
     displayName: formatDisplayName(node.species.name),
+    pixelSprites: getPixelSprites(pokemon),
     evolutionCondition: condition,
     evolvesTo,
     id: pokemonId,
@@ -252,45 +306,44 @@ export async function getPokemonDetail(
     variantName ||
     species.varieties.find((variety) => variety.is_default)?.pokemon.name ||
     speciesName;
-  if (
-    !species.varieties.some(
-      (variety) => variety.pokemon.name === selectedVariantName,
-    )
-  )
-    notFound();
-  const pokemon = await getPokemonResourceByName(selectedVariantName);
-  const variantResources = await mapInBatches(
-    species.varieties,
-    async (variety) => {
-      const variant = await getPokemonResourceByName(variety.pokemon.name);
+  const selectedVariety = species.varieties.find(
+    (variety) => variety.pokemon.name === selectedVariantName,
+  );
+  if (!selectedVariety) notFound();
+  const pokemon = await getPokemonResourceById(
+    getResourceId(selectedVariety.pokemon.url),
+  );
+  const [variantResources, evolution, abilities] = await Promise.all([
+    mapInBatches(species.varieties, async (variety) => {
+      const variant =
+        variety.pokemon.name === selectedVariantName
+          ? pokemon
+          : await getPokemonResourceById(getResourceId(variety.pokemon.url));
       return getVariantSummary(variant, species.name);
-    },
-  );
-  const evolution = species.evolution_chain
-    ? await mapEvolutionNode(
-        (
-          await getEvolutionResourceById(
-            getResourceId(species.evolution_chain.url),
-          )
-        ).chain,
-        null,
-      )
-    : null;
-  const abilities = await Promise.all(
-    pokemon.abilities.map(async (ability) => {
-      const resource = await getAbilityResourceByName(ability.ability.name);
-      return {
-        displayName: formatDisplayName(ability.ability.name),
-        isHidden: ability.is_hidden,
-        name: ability.ability.name,
-        description:
-          getEnglishText(resource.effect_entries)?.short_effect || null,
-      };
     }),
-  );
+    species.evolution_chain
+      ? getEvolutionResourceById(
+          getResourceId(species.evolution_chain.url),
+        ).then((resource) => mapEvolutionNode(resource.chain, null))
+      : null,
+    Promise.all(
+      pokemon.abilities.map(async (ability) => {
+        const resource = await getAbilityResourceByName(ability.ability.name);
+        return {
+          displayName: formatDisplayName(ability.ability.name),
+          isHidden: ability.is_hidden,
+          name: ability.ability.name,
+          description:
+            getEnglishText(resource.effect_entries)?.short_effect || null,
+        };
+      }),
+    ),
+  ]);
 
   return {
     abilities,
+    pixelSprites: getPixelSprites(pokemon),
+    cryUrl: pokemon.cries?.latest ?? pokemon.cries?.legacy ?? null,
     artworkUrl: getArtworkUrl(pokemon),
     description: getDescription(species),
     displayName: formatDisplayName(species.name),

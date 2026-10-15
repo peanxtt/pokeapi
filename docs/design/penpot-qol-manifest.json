@@ -1,0 +1,243 @@
+{
+  "file": "fd558256-f8c8-8184-8008-bf9fa9326cee",
+  "date": "2026-10-15",
+  "responsivePage": "a5e56ad8-0bb0-804d-8008-c9d101800c07",
+  "featurePage": "ee667bb9-f88e-8021-8008-cb12e3b2bb0a",
+  "review": "ee667bb9-f88e-8021-8008-cb16492163d5",
+  "components": "ee667bb9-f88e-8021-8008-cb16fc0cfcef",
+  "states": "ee667bb9-f88e-8021-8008-cb185e26eb01",
+  "menu": "ee667bb9-f88e-8021-8008-cb1bfb2bc072",
+  "boards": [
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb140637a677",
+      "name": "QoL / light / Desktop 1440",
+      "width": 1440,
+      "height": 2019
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb142bcb1cf3",
+      "name": "QoL / light / Desktop 1920",
+      "width": 1920,
+      "height": 2019
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb14380d9382",
+      "name": "QoL / light / Desktop 1024",
+      "width": 1024,
+      "height": 2308
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb146b091265",
+      "name": "QoL / light / Browse 768",
+      "width": 768,
+      "height": 1344
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb146f63a804",
+      "name": "QoL / light / Detail 768",
+      "width": 768,
+      "height": 1931
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb147f18d675",
+      "name": "QoL / light / Browse 390",
+      "width": 390,
+      "height": 1344
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb14d62cfa33",
+      "name": "QoL / light / Detail 390",
+      "width": 390,
+      "height": 2506
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb14dcdcc791",
+      "name": "QoL / light / Browse 320",
+      "width": 320,
+      "height": 1344
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb14e0097321",
+      "name": "QoL / light / Detail 320",
+      "width": 320,
+      "height": 2436
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb15046e2c82",
+      "name": "QoL / night / Desktop 1440",
+      "width": 1440,
+      "height": 2019
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb1510176279",
+      "name": "QoL / night / Desktop 1920",
+      "width": 1920,
+      "height": 2019
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb151af422fb",
+      "name": "QoL / night / Desktop 1024",
+      "width": 1024,
+      "height": 2308
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb15701cabb1",
+      "name": "QoL / night / Browse 768",
+      "width": 768,
+      "height": 1344
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb157503cac5",
+      "name": "QoL / night / Detail 768",
+      "width": 768,
+      "height": 1931
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb158123ed93",
+      "name": "QoL / night / Browse 390",
+      "width": 390,
+      "height": 1344
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb15c46efb54",
+      "name": "QoL / night / Detail 390",
+      "width": 390,
+      "height": 2506
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb15cd6d9931",
+      "name": "QoL / night / Browse 320",
+      "width": 320,
+      "height": 1344
+    },
+    {
+      "id": "ee667bb9-f88e-8021-8008-cb15d17958df",
+      "name": "QoL / night / Detail 320",
+      "width": 320,
+      "height": 2436
+    }
+  ],
+  "variants": [
+    {
+      "name": "QoL / night / Detail 390 / Pixels",
+      "id": "ee667bb9-f88e-8021-8008-cb18a733d959"
+    },
+    {
+      "name": "QoL / night / Browse 390 / Sound off",
+      "id": "ee667bb9-f88e-8021-8008-cb18aa619f06"
+    }
+  ],
+  "componentIds": [
+    "ee667bb9-f88e-8021-8008-cb16ff48f85c",
+    "ee667bb9-f88e-8021-8008-cb16ff4ced4e",
+    "ee667bb9-f88e-8021-8008-cb17036a16eb",
+    "ee667bb9-f88e-8021-8008-cb17036d418b",
+    "ee667bb9-f88e-8021-8008-cb1c015bcee1",
+    "ee667bb9-f88e-8021-8008-cb1c015d83d7",
+    "ee667bb9-f88e-8021-8008-cb1c0161f6c3",
+    "ee667bb9-f88e-8021-8008-cb1c016324f2"
+  ],
+  "colors": {
+    "normal": ["#E5E2D7", "#514C3C", "#444239", "#E5DFCA"],
+    "fire": ["#F6DFD1", "#863B1F", "#593D30", "#FFD1B6"],
+    "water": ["#D6E7F5", "#25577D", "#2D425E", "#B6DBFF"],
+    "electric": ["#F2E8BA", "#665116", "#51482B", "#F6E28B"],
+    "grass": ["#DDEBCF", "#365C29", "#334C31", "#C2E8A5"],
+    "ice": ["#D3ECEB", "#285C60", "#2E4D53", "#B6EBEF"],
+    "fighting": ["#F0D9D5", "#7D3730", "#583632", "#F1BDB4"],
+    "poison": ["#E7D8EF", "#663C78", "#4B365B", "#E7C5F7"],
+    "ground": ["#EEE0C8", "#71512B", "#50432F", "#EAD2A2"],
+    "flying": ["#E1DCF3", "#554378", "#403D5C", "#D4CAF5"],
+    "psychic": ["#F4D9E5", "#853655", "#583448", "#F7BEDA"],
+    "bug": ["#E3E8C5", "#505F27", "#414A2C", "#D8E7A0"],
+    "rock": ["#E7E0C6", "#675A27", "#4B452D", "#E4D9A3"],
+    "ghost": ["#DDD9EC", "#51426F", "#3C3653", "#CDC1EC"],
+    "dragon": ["#DED9F6", "#4E3B8A", "#3C345E", "#D0C0FF"],
+    "dark": ["#DFDBD8", "#51463D", "#423B36", "#E2D5CB"],
+    "steel": ["#DCE4E8", "#44545F", "#374650", "#D0E1EC"],
+    "fairy": ["#F1DFEC", "#7A426A", "#533C50", "#F3CCE7"],
+    "stellar": ["#D6ECE8", "#2A5C58", "#2E4D4A", "#BFECE5"]
+  },
+  "reviewPageName": "06 / Sound + pixels + type colors",
+  "componentCount": 8,
+  "colorCount": 76,
+  "typeCount": 19,
+  "minimumTypeContrast": 5.173738825976806,
+  "flowNames": [
+    "QoL / Sound on ↔ off",
+    "QoL / Night browse 390",
+    "QoL / Light desktop 1440",
+    "QoL / Artwork ↔ Pixels",
+    "QoL / Small phone 320"
+  ],
+  "status": "Approved; implemented locally",
+  "checkedPhoneWidth": 320,
+  "revision": 2,
+  "soundControlLocation": "Top bar only; no artwork sound or replay controls",
+  "typeIcons": {
+    "set": "Scarlet/Violet",
+    "count": 19,
+    "source": "PokéAPI sprites.types generation-ix/scarlet-violet/small",
+    "ids": {
+      "normal": 1,
+      "fighting": 2,
+      "flying": 3,
+      "poison": 4,
+      "ground": 5,
+      "rock": 6,
+      "bug": 7,
+      "ghost": 8,
+      "steel": 9,
+      "fire": 10,
+      "water": 11,
+      "grass": 12,
+      "electric": 13,
+      "psychic": 14,
+      "ice": 15,
+      "dragon": 16,
+      "dark": 17,
+      "fairy": 18,
+      "stellar": 19
+    }
+  },
+  "pillSpec": {
+    "paddingX": 6,
+    "fontSize": 12,
+    "standard": {
+      "height": 28,
+      "radius": 14,
+      "iconSize": 14,
+      "gap": 6
+    },
+    "compact": {
+      "height": 24,
+      "radius": 12,
+      "iconSize": 12,
+      "gap": 4
+    }
+  },
+  "alignmentAudit": {
+    "pills": 209,
+    "controls": 231,
+    "rows": 90,
+    "pillErrors": [],
+    "controlErrors": [],
+    "rowOverflow": [],
+    "rowTextOverlap": []
+  },
+  "latestVersion": "QoL review v2: centered controls, rounded type pills, top-bar sound",
+  "representativeExports": [
+    "Review / Sound, pixels and type colors",
+    "QoL / night / Browse 320"
+  ],
+  "verificationLimit": "The refreshed tall detail PNG export timed out; all pill/control geometry was audited and the review and 320px browse exports were inspected.",
+  "implementation": {
+    "approvedOn": "2026-10-15",
+    "typeSymbolShape": "circle",
+    "unitTests": 28,
+    "playwrightPassed": 20,
+    "playwrightSkipped": 12,
+    "deployed": false
+  },
+  "pendingPenpotVerification": "The final circular-symbol frame update timed out after the plugin stopped sending heartbeats. Website circles are implemented and browser-verified."
+}

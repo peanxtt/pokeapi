@@ -312,7 +312,7 @@ a {
   letter-spacing: 0.04em;
 }
 .theme-popover {
-  margin-left: auto;
+  margin-left: 0;
 }
 .theme-popover > button {
   justify-content: center;
@@ -359,6 +359,9 @@ a {
 }
 .workspace-intro {
   grid-column: 1/-1;
+}
+.intro-mobile {
+  display: none;
 }
 .workspace-intro h1 {
   font-size: 32px;
@@ -572,7 +575,8 @@ a {
 }
 .species-row {
   display: grid;
-  grid-template-columns: 80px minmax(0, 1fr) 16px;
+  grid-template-columns: 80px minmax(0, 1fr);
+  position: relative;
   gap: 16px;
   align-items: center;
   min-height: 96px;
@@ -603,19 +607,25 @@ a {
   margin-bottom: 4px;
 }
 .row-identity h3 {
+  padding-right: 20px;
   font-size: 20px;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 .row-types {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
   font-size: 12px;
   color: var(--muted);
   margin-top: 6px;
 }
 .row-status {
-  align-self: start;
-  padding-top: 4px;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--muted);
 }
 .row-pending {
@@ -654,6 +664,11 @@ a {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 32px;
+  min-height: 44px;
+}
+.skeleton-next {
+  width: 140px;
+  height: 44px;
 }
 .detail-topline .fg-button {
   flex-shrink: 0;
@@ -741,34 +756,24 @@ a {
   gap: 12px;
 }
 .type-badge {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 18px;
-  padding: 4px 10px;
-  border-radius: 2px;
-  background: var(--surface-muted);
-  color: var(--foreground);
+  padding: 0 6px;
+  min-height: 28px;
+  border-radius: 999px;
+  background: var(--type-light-bg, var(--surface-muted));
+  color: var(--type-light-ink, var(--foreground));
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-}
-.type-badge[data-type="grass"] {
-  background: #dce8d4;
-}
-.type-badge[data-type="poison"] {
-  background: #e2d7ee;
-}
-.type-badge[data-type="fire"] {
-  background: #f4dbbd;
-}
-.type-badge[data-type="water"],
-.type-badge[data-type="ice"] {
-  background: #d1e6f0;
-}
-.type-badge[data-type="electric"] {
-  background: #f4e8bf;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  white-space: nowrap;
 }
 :root[data-theme="night"] .type-badge {
-  background: var(--plate);
+  background: var(--type-night-bg, var(--plate));
+  color: var(--type-night-ink, var(--foreground));
 }
 .species-description {
   font-size: 16px;
@@ -791,7 +796,8 @@ a {
 .form-readonly {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 16px;
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 3px;
@@ -1024,26 +1030,22 @@ a {
   border-radius: 3px;
   animation: skeleton-pulse 1200ms ease-in-out infinite alternate;
 }
-.skeleton-row {
-  display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 16px;
-  padding: 8px;
-  height: 96px;
-  background: var(--surface);
-  border-radius: 3px;
+.skeleton-row .species-number {
+  height: 1.5em;
+  width: 40%;
+  max-width: 72px;
 }
-.skeleton-row .skeleton {
-  height: 14px;
+.skeleton-row h3 {
+  height: 1.25em;
+  width: 85%;
 }
-.skeleton-row .skeleton:first-child {
-  height: 80px;
+.skeleton-row .row-types {
+  height: 24px;
 }
-.skeleton-row-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  justify-content: center;
+.catalog-page-error {
+  margin: 24px 8px 0;
+  font-size: 14px;
+  color: var(--error);
 }
 .skeleton-hero-title {
   height: 44px;
@@ -1231,6 +1233,12 @@ body,
     font-size: 14px;
     margin-top: 24px;
   }
+  .intro-desktop {
+    display: none;
+  }
+  .intro-mobile {
+    display: inline;
+  }
   .compact-generation,
   .index-heading,
   .index-header > .uppercase-label {
@@ -1259,7 +1267,7 @@ body,
   .mobile-scope-controls .control-popover > button {
     width: 100%;
   }
-  .mobile-scope-controls > a {
+  .mobile-scope-controls > .fg-button {
     min-width: 88px;
     justify-content: center;
   }
@@ -1374,6 +1382,9 @@ body,
   }
 }
 @media (max-width: 359px) {
+  .skeleton-next {
+    width: 120px;
+  }
   .detail-topline {
     flex-wrap: wrap;
   }
@@ -1409,6 +1420,131 @@ body,
   }
   to {
     opacity: 1;
+  }
+}
+
+.nav-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sound-toggle {
+  min-width: 112px;
+  width: 112px;
+  gap: 8px;
+  padding-inline: 8px;
+}
+.fg-button {
+  justify-content: center;
+  text-align: center;
+}
+.fg-button svg,
+.menu-option svg {
+  flex-shrink: 0;
+}
+.menu-option {
+  justify-content: center;
+  position: relative;
+}
+.menu-option .menu-check {
+  position: absolute;
+  right: 12px;
+  margin: 0;
+}
+.type-option {
+  justify-content: center;
+  border-radius: 999px;
+  gap: 6px;
+  padding: 6px;
+}
+.type-badge.compact {
+  min-height: 24px;
+  gap: 4px;
+}
+.type-symbol {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.type-symbol img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.compact .type-symbol {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
+}
+.image-style-popover > button {
+  width: 44px;
+  min-width: 44px;
+  padding: 10px;
+}
+.image-style-popover .control-panel {
+  width: 260px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.result-count {
+  margin-left: auto;
+}
+.form-select {
+  padding-inline: 32px;
+  text-align: center;
+  text-align-last: center;
+}
+.image-style-section {
+  margin-top: 32px;
+}
+.image-style-section h2 {
+  margin-bottom: 14px;
+}
+.image-source {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--muted);
+  min-height: 36px;
+}
+.artwork-image.is-pixel img {
+  image-rendering: pixelated;
+  width: min(100%, 192px) !important;
+  height: min(100%, 192px) !important;
+  inset: 50% auto auto 50% !important;
+  transform: translate(-50%, -50%);
+}
+@media (max-width: 699px) {
+  .nav-inner {
+    gap: 12px;
+  }
+  .guide-brand {
+    font-size: 22px;
+    gap: 10px;
+  }
+  .guide-brand .guide-emblem {
+    width: 24px;
+    height: 24px;
+  }
+  .sound-toggle,
+  .theme-popover > button {
+    width: 44px;
+    min-width: 44px;
+    padding: 10px;
+  }
+  .sound-label,
+  .theme-popover > button > span,
+  .theme-popover > button > svg:last-child {
+    display: none;
+  }
+  .image-source {
+    min-height: 54px;
   }
 }
 @keyframes skeleton-pulse {

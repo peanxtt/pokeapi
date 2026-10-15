@@ -9,6 +9,11 @@ export default async function Page(
 ): Promise<React.JSX.Element> {
   const data = await loadSpeciesPage(props);
   return (
-    <PokemonDetailView detail={data.detail} from={data.from} next={data.next} />
+    <PokemonDetailView
+      key={data.detail.speciesName}
+      detail={data.detail}
+      from={data.from}
+      next={data.next}
+    />
   );
 }

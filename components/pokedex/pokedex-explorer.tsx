@@ -1,16 +1,13 @@
 "use client";
+import { ImageStyleControl } from "./image-style-control";
+import { TypeBadge } from "./type-badge";
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { X, Search, LoaderCircle } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GENERATIONS } from "@/lib/pokedex/generations";
-import { formatDisplayName } from "@/lib/pokedex/format";
-import {
-  getBrowsePath,
-  getDetailHref,
-  matchesQuery,
-} from "@/lib/pokedex/query";
+import { getBrowsePath, getDetailHref } from "@/lib/pokedex/query";
 import {
   POKEMON_TYPES,
   type CatalogScope,
@@ -24,6 +21,10 @@ import {
   useIndexNavigation,
 } from "@/components/pokedex/guide-shell";
 import { useMobile } from "@/components/pokedex/use-mobile";
+import { useCatalogPages } from "@/components/pokedex/use-catalog-pages";
+import { TypeFilterSubmit } from "@/components/pokedex/type-filter-submit";
+import { CatalogSkeletonRows } from "@/components/pokedex/skeletons";
+import { CATALOG_PAGE_SIZE } from "@/lib/pokedex/types";
 
 type Props = {
   catalog: PokemonCatalog;
@@ -58,7 +59,7 @@ function saveSnapshot(key: string, snapshot: Snapshot): void {
   } catch {}
 }
 export function PokedexExplorer({
-  catalog,
+  catalog: initialCatalog,
   initialQuery,
   initialTypes,
   scope,
@@ -66,7 +67,7 @@ export function PokedexExplorer({
   const [query, setQuery] = useState(initialQuery);
   const [selectedTypes, setSelectedTypes] = useState(initialTypes);
   const [draftTypes, setDraftTypes] = useState(initialTypes);
-  const [limit, setLimit] = useState(40);
+  const [desiredCount, setDesiredCount] = useState(CATALOG_PAGE_SIZE);
   const [serverState, setServerState] = useState(
     initialQuery + "|" + initialTypes.join(","),
   );
@@ -78,6 +79,8 @@ export function PokedexExplorer({
   }
   const dirty = useRef(false);
   const list = useRef<HTMLDivElement>(null);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const restoration = useRef<Snapshot | null>(null);
   const previousSpecies = useRef<string | null>(null);
   const lastClicked = useRef<string | undefined>(undefined);
   const mobile = useMobile();
@@ -88,29 +91,83 @@ export function PokedexExplorer({
     ? decodeURIComponent(pathname.split("/")[2] || "")
     : null;
   const browsePath = getBrowsePath(scope, query, selectedTypes);
-  const visible = useMemo(
-    () =>
-      catalog.pokemon.filter(
-        (p) =>
-          matchesQuery(p.name, p.id, query) &&
-          (!selectedTypes.length ||
-            selectedTypes.some((t) => p.types.includes(t))),
-      ),
-    [catalog.pokemon, query, selectedTypes],
-  );
-  const draftCount = catalog.pokemon.filter(
-    (p) =>
-      matchesQuery(p.name, p.id, query) &&
-      (!draftTypes.length || draftTypes.some((t) => p.types.includes(t))),
-  ).length;
+  const initialBrowsePath = getBrowsePath(scope, initialQuery, initialTypes);
+  const { catalog, pending, error, loadingMore, loadMore, retry } =
+    useCatalogPages(
+      initialCatalog,
+      initialBrowsePath,
+      scope,
+      query,
+      selectedTypes,
+    );
+  const visible = catalog.pokemon;
   const selectionVisible =
-    !selectedSpecies || visible.some((p) => p.name === selectedSpecies);
-  const selectedIndex = visible.findIndex((p) => p.name === selectedSpecies);
-  if (selectedIndex >= limit)
-    setLimit(Math.ceil((selectedIndex + 1) / 40) * 40);
+    !selectedSpecies || catalog.species.some((p) => p.name === selectedSpecies);
+  const selectedIndex = catalog.species.findIndex(
+    (p) => p.name === selectedSpecies,
+  );
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (!restoration.current && list.current) list.current.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [browsePath]);
+  if (!pending && selectedIndex >= desiredCount)
+    setDesiredCount(
+      Math.ceil((selectedIndex + 1) / CATALOG_PAGE_SIZE) * CATALOG_PAGE_SIZE,
+    );
 
   useEffect(() => {
-    if (!dirty.current) return;
+    if (
+      !pending &&
+      !error &&
+      !loadingMore &&
+      visible.length < Math.min(desiredCount, catalog.species.length) &&
+      catalog.nextOffset !== null
+    )
+      void loadMore();
+  }, [
+    pending,
+    error,
+    loadingMore,
+    visible.length,
+    desiredCount,
+    catalog.species.length,
+    catalog.nextOffset,
+    loadMore,
+  ]);
+
+  useEffect(() => {
+    if (
+      pending ||
+      error ||
+      loadingMore ||
+      catalog.nextOffset === null ||
+      (mobile && selectedSpecies) ||
+      !sentinel.current ||
+      typeof IntersectionObserver === "undefined"
+    )
+      return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) void loadMore();
+      },
+      { root: mobile ? null : list.current, rootMargin: "320px 0px" },
+    );
+    observer.observe(sentinel.current);
+    return () => observer.disconnect();
+  }, [
+    pending,
+    error,
+    loadingMore,
+    catalog.nextOffset,
+    mobile,
+    selectedSpecies,
+    loadMore,
+  ]);
+
+  useEffect(() => {
+    if (!dirty.current || (selectedSpecies && (pending || error))) return;
     const timeout = setTimeout(() => {
       if (!dirty.current) return;
       dirty.current = false;
@@ -123,35 +180,53 @@ export function PokedexExplorer({
       } else window.history.replaceState(null, "", browsePath);
     }, 200);
     return () => clearTimeout(timeout);
-  }, [browsePath, pathname, selectedSpecies, selectionVisible, router]);
+  }, [
+    browsePath,
+    pathname,
+    selectedSpecies,
+    selectionVisible,
+    router,
+    pending,
+    error,
+  ]);
 
   useEffect(() => {
-    const snapshot = readSnapshot(
-      getBrowsePath(scope, initialQuery, initialTypes),
-    );
+    const snapshot = readSnapshot(initialBrowsePath);
     if (!snapshot) return;
     lastClicked.current = snapshot.species;
-    let restoreFrame = 0;
+    restoration.current = snapshot;
     const frame = requestAnimationFrame(() => {
-      setLimit((current) => Math.max(current, snapshot.limit || 40));
-      restoreFrame = requestAnimationFrame(() => {
-        if (list.current) list.current.scrollTop = snapshot.top;
-        if (!window.location.pathname.startsWith("/pokemon/")) {
-          if (mobile) window.scrollTo(0, snapshot.top);
-          const row = Array.from(
-            list.current?.querySelectorAll<HTMLAnchorElement>(
-              "[data-species]",
-            ) || [],
-          ).find((row) => row.dataset.species === snapshot.species);
-          row?.focus({ preventScroll: true });
-        }
-      });
+      setDesiredCount((current) =>
+        Math.max(current, snapshot.limit || CATALOG_PAGE_SIZE),
+      );
     });
-    return () => {
-      cancelAnimationFrame(frame);
-      cancelAnimationFrame(restoreFrame);
-    };
-  }, [scope, initialQuery, initialTypes, mobile]);
+    return () => cancelAnimationFrame(frame);
+  }, [initialBrowsePath, mobile]);
+
+  useEffect(() => {
+    const snapshot = restoration.current;
+    if (
+      !snapshot ||
+      pending ||
+      error ||
+      visible.length <
+        Math.min(snapshot.limit || CATALOG_PAGE_SIZE, catalog.species.length)
+    )
+      return;
+    const frame = requestAnimationFrame(() => {
+      if (list.current) list.current.scrollTop = snapshot.top;
+      if (!window.location.pathname.startsWith("/pokemon/")) {
+        if (mobile) window.scrollTo(0, snapshot.top);
+        const row = Array.from(
+          list.current?.querySelectorAll<HTMLAnchorElement>("[data-species]") ||
+            [],
+        ).find((row) => row.dataset.species === snapshot.species);
+        row?.focus({ preventScroll: true });
+      }
+      restoration.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [visible.length, catalog.species.length, pending, error, mobile]);
 
   useEffect(() => {
     if (!selectedSpecies && previousSpecies.current && list.current) {
@@ -168,20 +243,22 @@ export function PokedexExplorer({
       ).find((row) => row.dataset.species === selectedSpecies);
       row?.scrollIntoView({ block: "nearest", inline: "nearest" });
     }
-  }, [selectedSpecies, mobile]);
+  }, [selectedSpecies, mobile, visible.length]);
 
   function record(): void {
+    if (restoration.current || pending || error === "first") return;
     saveSnapshot(browsePath, {
       top: mobile ? window.scrollY : list.current?.scrollTop || 0,
       species: lastClicked.current,
-      limit,
+      limit: visible.length,
     });
   }
   function clear(): void {
+    restoration.current = null;
     dirty.current = true;
     setQuery("");
     setSelectedTypes([]);
-    setLimit(40);
+    setDesiredCount(CATALOG_PAGE_SIZE);
   }
   function generationMenu(close: () => void): React.ReactNode {
     return (
@@ -196,6 +273,7 @@ export function PokedexExplorer({
           <Link
             key={g.scope}
             href={getBrowsePath(g.scope)}
+            prefetch={false}
             scroll={false}
             className={`menu-option ${g.scope === scope ? "selected" : ""}`}
             aria-current={g.scope === scope ? "page" : undefined}
@@ -239,7 +317,7 @@ export function PokedexExplorer({
               : catalog.generation.label + " / " + catalog.generation.region}
           </span>
           <span className="scope-count">
-            {catalog.pokemon.length} species / national order
+            {catalog.totalSpecies} species / national order
           </span>
         </div>
       </div>
@@ -248,9 +326,12 @@ export function PokedexExplorer({
           <span>Explore the </span>Pokédex
         </h1>
         <p>
-          {mobile
-            ? "Find a familiar face. Discover another."
-            : "Choose a generation, then find a species by name or number."}
+          <span className="intro-desktop">
+            Choose a generation, then find a species by name or number.
+          </span>
+          <span className="intro-mobile">
+            Find a familiar face. Discover another.
+          </span>
         </p>
         <div className="compact-generation">{generationControl}</div>
       </header>
@@ -264,6 +345,7 @@ export function PokedexExplorer({
           <Link
             className="generation-link"
             href={getBrowsePath(g.id)}
+            prefetch={false}
             scroll={false}
             aria-current={scope === g.id ? "page" : undefined}
             key={g.id}
@@ -275,6 +357,7 @@ export function PokedexExplorer({
         <Link
           className="generation-link"
           href={getBrowsePath("all")}
+          prefetch={false}
           scroll={false}
           aria-current={scope === "all" ? "page" : undefined}
         >
@@ -302,13 +385,15 @@ export function PokedexExplorer({
             <input
               id="pokemon-search"
               type="search"
+              maxLength={100}
               autoComplete="off"
               placeholder="e.g. Bulbasaur or 0001"
               value={query}
               onChange={(e) => {
                 dirty.current = true;
                 setQuery(e.target.value);
-                setLimit(40);
+                restoration.current = null;
+                setDesiredCount(CATALOG_PAGE_SIZE);
               }}
             />
             {query && (
@@ -319,6 +404,8 @@ export function PokedexExplorer({
                 onClick={() => {
                   dirty.current = true;
                   setQuery("");
+                  restoration.current = null;
+                  setDesiredCount(CATALOG_PAGE_SIZE);
                 }}
               >
                 <X size={16} aria-hidden />
@@ -330,6 +417,7 @@ export function PokedexExplorer({
             <Link
               className={`fg-button ${scope === "all" ? "primary" : ""}`}
               href={getBrowsePath("all")}
+              prefetch={false}
               scroll={false}
             >
               All
@@ -353,11 +441,12 @@ export function PokedexExplorer({
                     e.preventDefault();
                     dirty.current = true;
                     setSelectedTypes(draftTypes);
-                    setLimit(40);
+                    restoration.current = null;
+                    setDesiredCount(CATALOG_PAGE_SIZE);
                     close();
                   }}
                 >
-                  <p>Matches either selected type, within this generation.</p>
+                  <p>Matches any selected type, within this scope.</p>
                   <div className="type-options">
                     {POKEMON_TYPES.map((type) => (
                       <label className="type-option" key={type}>
@@ -372,7 +461,7 @@ export function PokedexExplorer({
                             )
                           }
                         />
-                        {formatDisplayName(type)}
+                        <TypeBadge type={type} />
                       </label>
                     ))}
                   </div>
@@ -384,16 +473,29 @@ export function PokedexExplorer({
                     >
                       Clear
                     </button>
-                    <button className="fg-button primary" type="submit">
-                      Show {draftCount} species
-                    </button>
+                    <TypeFilterSubmit
+                      scope={scope}
+                      query={query}
+                      types={draftTypes}
+                      knownCount={
+                        !pending &&
+                        !error &&
+                        draftTypes.join(",") === selectedTypes.join(",")
+                          ? catalog.species.length
+                          : undefined
+                      }
+                    />
                   </div>
                 </form>
               )}
             </ControlPopover>
+            <ImageStyleControl compact />
             <span className="result-count" role="status">
-              {visible.length}{" "}
-              {query || selectedTypes.length ? "results" : "species"}
+              {pending
+                ? "Searching…"
+                : error === "first"
+                  ? "Unavailable"
+                  : `${catalog.species.length} ${query || selectedTypes.length ? "results" : "species"}`}
             </span>
           </div>
         </div>
@@ -406,6 +508,7 @@ export function PokedexExplorer({
               "[data-species]",
             );
             if (row) {
+              restoration.current = null;
               // Flush a pending search before the row pushes its detail URL.
               if (dirty.current && !selectedSpecies)
                 window.history.replaceState(null, "", browsePath);
@@ -416,10 +519,26 @@ export function PokedexExplorer({
             }
           }}
         >
-          {visible.length ? (
+          {pending ? (
+            <ol aria-busy="true" aria-label="Loading species">
+              <CatalogSkeletonRows />
+            </ol>
+          ) : error === "first" ? (
+            <div className="empty-catalog">
+              <h2>Couldn’t load species.</h2>
+              <p role="alert">Try loading these results again.</p>
+              <button
+                className="fg-button primary"
+                type="button"
+                onClick={retry}
+              >
+                Try again
+              </button>
+            </div>
+          ) : visible.length ? (
             <>
               <ol>
-                {visible.slice(0, limit).map((pokemon, index) => (
+                {visible.map((pokemon, index) => (
                   <li key={pokemon.id}>
                     <PokemonListRow
                       pokemon={pokemon}
@@ -429,15 +548,34 @@ export function PokedexExplorer({
                     />
                   </li>
                 ))}
+                {loadingMore && <CatalogSkeletonRows count={3} />}
               </ol>
-              {visible.length > limit && (
-                <button
-                  className="fg-button catalog-more"
-                  type="button"
-                  onClick={() => setLimit((current) => current + 40)}
-                >
-                  Load more <span aria-hidden>↓</span>
-                </button>
+              {loadingMore && (
+                <span className="sr-only" role="status">
+                  Loading more species…
+                </span>
+              )}
+              {error === "more" && (
+                <p className="catalog-page-error" role="alert">
+                  Couldn’t load the next species. Your current list is saved.
+                </p>
+              )}
+              {catalog.nextOffset !== null && (
+                <div ref={sentinel} className="catalog-sentinel">
+                  <button
+                    className="fg-button catalog-more"
+                    type="button"
+                    disabled={loadingMore}
+                    onClick={error === "more" ? retry : () => void loadMore()}
+                  >
+                    {loadingMore
+                      ? "Loading species…"
+                      : error === "more"
+                        ? "Try again"
+                        : "Load more"}{" "}
+                    <span aria-hidden>↓</span>
+                  </button>
+                </div>
               )}
               <p className="catalog-footer">
                 National order /{" "}

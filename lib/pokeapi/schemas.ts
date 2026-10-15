@@ -14,6 +14,20 @@ const spriteUrlSchema = z.string().url().nullable();
 const spritesSchema = z.object({
   front_default: spriteUrlSchema,
   front_shiny: spriteUrlSchema,
+  versions: z
+    .object({
+      "generation-v": z
+        .object({
+          "black-white": z
+            .object({
+              front_default: spriteUrlSchema.optional(),
+              front_shiny: spriteUrlSchema.optional(),
+            })
+            .optional(),
+        })
+        .optional(),
+    })
+    .optional(),
   other: z
     .object({
       "official-artwork": z.object({
@@ -42,7 +56,18 @@ export const pokemonListSchema = z.object({
   results: z.array(namedResourceSchema),
 });
 
+export const typeSchema = z.object({
+  pokemon: z.array(z.object({ pokemon: namedResourceSchema })),
+});
+
 export const pokemonSchema = z.object({
+  cries: z
+    .object({
+      latest: spriteUrlSchema.optional(),
+      legacy: spriteUrlSchema.optional(),
+    })
+    .nullable()
+    .optional(),
   id: z.number().int().positive(),
   name: z.string().min(1),
   is_default: z.boolean(),

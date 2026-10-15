@@ -5,6 +5,7 @@ import {
   type SpeciesPageProps,
 } from "@/lib/pokedex/page-data";
 import { PokedexExplorer } from "@/components/pokedex/pokedex-explorer";
+import { getPokemonCatalog } from "@/lib/pokedex/data";
 export async function generateMetadata({
   params,
 }: SpeciesPageProps): Promise<Metadata> {
@@ -15,10 +16,14 @@ export default async function PokemonPage(
   props: SpeciesPageProps,
 ): Promise<React.JSX.Element> {
   const data = await loadSpeciesPage(props);
+  const catalog = await getPokemonCatalog(data.scope, {
+    query: data.initialQuery,
+    types: data.initialTypes,
+  });
   return (
     <PokedexExplorer
       key={data.scope}
-      catalog={data.catalog}
+      catalog={catalog}
       scope={data.scope}
       initialQuery={data.initialQuery}
       initialTypes={data.initialTypes}

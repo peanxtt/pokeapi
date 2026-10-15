@@ -1,10 +1,10 @@
 "use client";
 
-import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import { usePathname } from "next/navigation";
+import { MotionConfig } from "motion/react";
 import Link from "next/link";
 import { createContext, Suspense, useContext, useState } from "react";
 import { ThemeToggle } from "@/components/pokedex/theme-toggle";
+import { GuidePreferencesProvider, SoundToggle } from "./guide-preferences";
 
 const IndexReturnContext = createContext<{
   enteredFromIndex: boolean;
@@ -42,36 +42,42 @@ export function GuideShell({
   children: React.ReactNode;
   detail: React.ReactNode;
 }): React.JSX.Element {
-  const pathname = usePathname();
   const [enteredFromIndex, markIndexEntry] = useState(false);
   return (
-    <IndexReturnContext value={{ enteredFromIndex, markIndexEntry }}>
-      <MotionConfig
-        reducedMotion="user"
-        transition={{ duration: 0.18, ease: [0.25, 1, 0.5, 1] }}
-      >
-        <a className="skip-link fg-button" href="#pokedex-content">
-          Skip to content
-        </a>
-        <header className="command-bar">
-          <div className="nav-inner">
-            <Link className="guide-brand" href="/?generation=1" scroll={false}>
-              <GuideEmblem />
-              <span>POKÉDEX</span>
-            </Link>
-            <span className="nav-tagline">A field guide for the curious</span>
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="guide-shell" id="pokedex-content">
-          <Suspense>{children}</Suspense>
-          <AnimatePresence initial={false}>
-            <motion.div key={pathname} className="slot-container">
+    <GuidePreferencesProvider>
+      <IndexReturnContext value={{ enteredFromIndex, markIndexEntry }}>
+        <MotionConfig
+          reducedMotion="user"
+          transition={{ duration: 0.18, ease: [0.25, 1, 0.5, 1] }}
+        >
+          <a className="skip-link fg-button" href="#pokedex-content">
+            Skip to content
+          </a>
+          <header className="command-bar">
+            <div className="nav-inner">
+              <Link
+                className="guide-brand"
+                href="/?generation=1"
+                scroll={false}
+              >
+                <GuideEmblem />
+                <span>POKÉDEX</span>
+              </Link>
+              <span className="nav-tagline">A field guide for the curious</span>
+              <div className="nav-actions">
+                <SoundToggle />
+                <ThemeToggle />
+              </div>
+            </div>
+          </header>
+          <main className="guide-shell" id="pokedex-content">
+            <Suspense>{children}</Suspense>
+            <div className="slot-container">
               <Suspense>{detail}</Suspense>
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      </MotionConfig>
-    </IndexReturnContext>
+            </div>
+          </main>
+        </MotionConfig>
+      </IndexReturnContext>
+    </GuidePreferencesProvider>
   );
 }
